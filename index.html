@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Collectors Vault 3D — Filament Subscription</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --obsidian: #080b10;
+    --deep: #0d1117;
+    --surface: #111820;
+    --surface2: #161e28;
+    --border: rgba(255,255,255,0.07);
+    --border-bright: rgba(255,255,255,0.15);
+    --gold: #f0c040;
+    --gold-dim: #c49a20;
+    --gold-glow: rgba(240,192,64,0.15);
+    --cyan: #00e5ff;
+    --cyan-dim: rgba(0,229,255,0.12);
+    --red: #ff3d5a;
+    --text-primary: #f0ece4;
+    --text-secondary: #8a96a8;
+    --text-muted: #4a5568;
+    --font-display: 'Orbitron', monospace;
+    --font-heading: 'Rajdhani', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--obsidian);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    width: 10px; height: 10px;
+    background: var(--gold);
+    border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.1s ease;
+    mix-blend-mode: difference;
+  }
+  .cursor-ring {
+    width: 32px; height: 32px;
+    border: 1px solid rgba(240,192,64,0.5);
+    border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none;
+    z-index: 9998;
+    transition: transform 0.25s ease, width 0.2s, height 0.2s, opacity 0.2s;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 500;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 3rem;
+    background: rgba(8,11,16,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+    text-decoration: none;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .nav-logo-icon {
+    width: 28px; height: 28px;
+    border: 1px solid var(--gold-dim);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .nav-links {
+    display: flex; gap: 2.5rem; list-style: none;
+  }
+  .nav-links a {
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text-primary); }
+  .nav-cta {
+    font-family: var(--font-heading);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--obsidian);
+    background: var(--gold);
+    border: none;
+    padding: 0.6rem 1.4rem;
+    border-radius: 3px;
+    cursor: none;
+    transition: background 0.2s, transform 0.15s;
+    text-decoration: none;
+  }
+  .nav-cta:hover { background: #ffd060; transform: translateY(-1px); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative;
+    padding: 8rem 2rem 6rem;
+    overflow: hidden;
+  }
+
+  /* Hex grid background */
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 40%, rgba(240,192,64,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 80% 60%, rgba(0,229,255,0.04) 0%, transparent 60%);
+  }
+  .hex-grid {
+    position: absolute; inset: 0; opacity: 0.08;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 80%);
+  }
+
+  /* Floating orbs */
+  .orb {
+    position: absolute; border-radius: 50%;
+    filter: blur(60px); pointer-events: none;
+    animation: drift 8s ease-in-out infinite;
+  }
+  .orb-1 { width: 400px; height: 400px; background: rgba(240,192,64,0.06); top: 10%; left: -5%; animation-delay: 0s; }
+  .orb-2 { width: 300px; height: 300px; background: rgba(0,229,255,0.05); top: 30%; right: -5%; animation-delay: -3s; }
+  .orb-3 { width: 200px; height: 200px; background: rgba(255,61,90,0.04); bottom: 20%; left: 30%; animation-delay: -5s; }
+
+  @keyframes drift {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(20px, -20px) scale(1.05); }
+    66% { transform: translate(-15px, 15px) scale(0.95); }
+  }
+
+  .hero-eyebrow {
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 12px;
+    animation: fadeUp 0.8s ease both;
+  }
+  .hero-eyebrow::before, .hero-eyebrow::after {
+    content: ''; display: block;
+    width: 32px; height: 1px;
+    background: var(--gold-dim);
+  }
+
+  .hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.8rem, 6vw, 5.5rem);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    animation: fadeUp 0.8s 0.1s ease both;
+  }
+  .hero-title .line1 { display: block; color: var(--text-primary); }
+  .hero-title .line2 {
+    display: block;
+    background: linear-gradient(135deg, var(--gold) 0%, #fff8dc 50%, var(--gold) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 4s ease-in-out infinite;
+    background-size: 200%;
+  }
+  @keyframes shimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .hero-subtitle {
+    font-size: 1.1rem;
+    font-weight: 300;
+    color: var(--text-secondary);
+    text-align: center;
+    max-width: 560px;
+    margin: 1.8rem auto 0;
+    line-height: 1.7;
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+
+  .hero-cta-group {
+    display: flex; gap: 1rem; align-items: center; justify-content: center;
+    margin-top: 3rem;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+  .btn-primary {
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--obsidian);
+    background: var(--gold);
+    border: none;
+    padding: 1rem 2.5rem;
+    border-radius: 3px;
+    cursor: none;
+    text-decoration: none;
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 30px rgba(240,192,64,0.25);
+  }
+  .btn-primary::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.25) 50%, transparent 60%);
+    transform: translateX(-100%);
+    transition: transform 0.4s ease;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 50px rgba(240,192,64,0.4); }
+  .btn-primary:hover::after { transform: translateX(100%); }
+
+  .btn-ghost {
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--border-bright);
+    padding: 1rem 2rem;
+    border-radius: 3px;
+    cursor: none;
+    text-decoration: none;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .btn-ghost:hover { color: var(--text-primary); border-color: rgba(255,255,255,0.35); }
+
+  .hero-stats {
+    display: flex; gap: 3rem; justify-content: center; align-items: center;
+    margin-top: 4rem;
+    animation: fadeUp 0.8s 0.4s ease both;
+    padding-top: 3rem;
+    border-top: 1px solid var(--border);
+  }
+  .stat { text-align: center; }
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-family: var(--font-heading);
+  }
+  .stat-divider { width: 1px; height: 36px; background: var(--border); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* SECTION common */
+  section { padding: 7rem 2rem; position: relative; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .section-label {
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1rem;
+  }
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--text-primary);
+    margin-bottom: 1.2rem;
+  }
+  .section-body {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    max-width: 520px;
+    line-height: 1.75;
+  }
+
+  /* WHAT'S IN THE BOX */
+  .box-section { background: var(--deep); }
+  .box-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-top: 3.5rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .box-item {
+    background: var(--surface);
+    padding: 2.2rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s;
+  }
+  .box-item:hover { background: var(--surface2); }
+  .box-item::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .box-item:hover::before { opacity: 1; }
+  .box-item-num {
+    font-family: var(--font-display);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
+  .box-item-icon {
+    font-size: 2rem; margin-bottom: 1rem; display: block;
+  }
+  .box-item-title {
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.02em;
+  }
+  .box-item-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+  .box-item.featured {
+    background: linear-gradient(135deg, #0d1a0f 0%, #0a1510 100%);
+    border-left: 2px solid rgba(0,229,255,0.3);
+  }
+  .box-item.featured .box-item-title { color: var(--cyan); }
+
+  /* TIERS */
+  .tiers-section { background: var(--obsidian); }
+  .tiers-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 3.5rem;
+  }
+  .tier-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 2.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s, border-color 0.3s;
+  }
+  .tier-card:hover { transform: translateY(-4px); }
+  .tier-card.featured {
+    border-color: var(--gold-dim);
+    background: linear-gradient(160deg, #1a1500 0%, #0d1117 60%);
+  }
+  .tier-card.featured::after {
+    content: 'MOST POPULAR';
+    position: absolute; top: 16px; right: -28px;
+    background: var(--gold);
+    color: var(--obsidian);
+    font-family: var(--font-heading);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    padding: 4px 40px;
+    transform: rotate(45deg);
+  }
+  .tier-glow {
+    position: absolute; top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(240,192,64,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .tier-name {
+    font-family: var(--font-display);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+  .tier-card.featured .tier-name { color: var(--gold-dim); }
+  .tier-price {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+  .tier-price sup { font-size: 1.2rem; vertical-align: top; margin-top: 0.6rem; display: inline-block; color: var(--text-secondary); }
+  .tier-period {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+    font-family: var(--font-heading);
+    letter-spacing: 0.08em;
+  }
+  .tier-divider { border: none; border-top: 1px solid var(--border); margin-bottom: 1.8rem; }
+  .tier-features { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; }
+  .tier-features li {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .tier-features li::before {
+    content: '▸';
+    color: var(--gold-dim);
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 0.7rem;
+  }
+  .tier-features li.highlight { color: var(--text-primary); font-weight: 400; }
+  .tier-btn {
+    display: block;
+    margin-top: 2.5rem;
+    text-align: center;
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.9rem;
+    border-radius: 3px;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: none;
+  }
+  .tier-btn-outline {
+    color: var(--text-secondary);
+    border: 1px solid var(--border-bright);
+  }
+  .tier-btn-outline:hover { color: var(--text-primary); border-color: rgba(255,255,255,0.35); }
+  .tier-btn-gold {
+    color: var(--obsidian);
+    background: var(--gold);
+    box-shadow: 0 0 24px rgba(240,192,64,0.2);
+  }
+  .tier-btn-gold:hover { background: #ffd060; box-shadow: 0 0 40px rgba(240,192,64,0.35); }
+
+  /* HOW IT WORKS */
+  .how-section { background: var(--deep); }
+  .how-steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin-top: 3.5rem;
+    position: relative;
+  }
+  .how-steps::before {
+    content: '';
+    position: absolute;
+    top: 28px; left: 12.5%; right: 12.5%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-bright), var(--gold-dim), var(--border-bright), transparent);
+  }
+  .how-step { padding: 0 1.5rem; text-align: center; }
+  .how-step-num {
+    width: 56px; height: 56px;
+    border: 1px solid var(--border-bright);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--gold);
+    background: var(--obsidian);
+    position: relative;
+    z-index: 1;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .how-step:hover .how-step-num {
+    border-color: var(--gold);
+    box-shadow: 0 0 20px rgba(240,192,64,0.2);
+  }
+  .how-step-title {
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.02em;
+  }
+  .how-step-desc { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; }
+
+  /* NICHE / EDGE SECTION */
+  .edge-section {
+    background: var(--obsidian);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .edge-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6rem;
+    align-items: center;
+  }
+  .edge-visual {
+    position: relative;
+    height: 360px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .spool-stack {
+    position: relative; width: 260px; height: 260px;
+  }
+  .spool {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .spool-1 {
+    width: 240px; height: 240px;
+    border-color: var(--gold-dim);
+    top: 10px; left: 10px;
+    background: radial-gradient(circle at 35% 35%, #1a1500 0%, #050800 70%);
+    animation: rotateSlow 20s linear infinite;
+  }
+  .spool-2 {
+    width: 160px; height: 160px;
+    border-color: rgba(0,229,255,0.3);
+    top: 50px; left: 50px;
+    background: radial-gradient(circle at 35% 35%, #001a1a 0%, #050808 70%);
+    animation: rotateSlow 15s linear infinite reverse;
+  }
+  .spool-3 {
+    width: 80px; height: 80px;
+    border-color: rgba(255,61,90,0.3);
+    top: 90px; left: 90px;
+    background: radial-gradient(circle at 35% 35%, #1a0005 0%, #080005 70%);
+  }
+  .spool-center {
+    position: absolute;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--gold);
+    top: 112px; left: 112px;
+    box-shadow: 0 0 30px rgba(240,192,64,0.5);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  @keyframes rotateSlow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .edge-tags {
+    position: absolute;
+    display: flex; flex-direction: column; gap: 8px;
+    right: -20px; top: 50%;
+    transform: translateY(-50%);
+  }
+  .edge-tag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 0.72rem;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    animation: tagFloat 3s ease-in-out infinite;
+  }
+  .edge-tag:nth-child(1) { color: var(--gold); border-color: var(--gold-dim); animation-delay: 0s; }
+  .edge-tag:nth-child(2) { color: var(--cyan); border-color: rgba(0,229,255,0.3); animation-delay: -1s; }
+  .edge-tag:nth-child(3) { color: #c084fc; border-color: rgba(192,132,252,0.3); animation-delay: -2s; }
+  @keyframes tagFloat {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(6px); }
+  }
+
+  /* COLORWAY reveal */
+  .colorway-strip {
+    display: flex; gap: 4px; margin-top: 2rem;
+    align-items: flex-end;
+  }
+  .cw {
+    height: 48px; border-radius: 3px; flex: 1;
+    position: relative; overflow: hidden;
+    transition: flex 0.4s ease, height 0.4s ease;
+    cursor: none;
+  }
+  .cw:hover { flex: 3; height: 64px; }
+  .cw-label {
+    position: absolute; bottom: 6px; left: 8px;
+    font-family: var(--font-heading);
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  }
+  .cw:hover .cw-label { opacity: 1; }
+
+  /* TESTIMONIALS */
+  .testimonials-section { background: var(--deep); }
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+  .testimonial {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 2rem;
+    position: relative;
+  }
+  .testimonial::before {
+    content: '"';
+    position: absolute; top: 1rem; right: 1.5rem;
+    font-family: Georgia, serif;
+    font-size: 5rem;
+    color: var(--border-bright);
+    line-height: 1;
+  }
+  .testimonial-text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+  }
+  .testimonial-author {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .author-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    font-size: 0.65rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .author-name {
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .author-handle { font-size: 0.75rem; color: var(--text-muted); }
+  .stars { color: var(--gold); font-size: 0.7rem; letter-spacing: 2px; margin-bottom: 0.8rem; }
+
+  /* CTA FINAL */
+  .final-cta {
+    background: var(--obsidian);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .final-cta::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(240,192,64,0.07) 0%, transparent 70%);
+  }
+  .final-cta .section-title { font-size: clamp(2rem, 4vw, 3.5rem); }
+  .founding-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(240,192,64,0.08);
+    border: 1px solid var(--gold-dim);
+    border-radius: 2px;
+    padding: 8px 20px;
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 2.5rem;
+  }
+  .founding-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--gold);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.7); }
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--obsidian);
+    border-top: 1px solid var(--border);
+    padding: 2.5rem 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .footer-logo {
+    font-family: var(--font-display);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+  }
+  .footer-links {
+    display: flex; gap: 2rem; list-style: none;
+  }
+  .footer-links a {
+    font-family: var(--font-heading);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--text-secondary); }
+  .footer-copy {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-family: var(--font-heading);
+    letter-spacing: 0.05em;
+  }
+
+  /* Scroll reveal */
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+
+  /* Holographic card shimmer */
+  .holo-card {
+    position: relative;
+    overflow: hidden;
+  }
+  .holo-card::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg,
+      transparent 20%,
+      rgba(255,255,255,0.02) 40%,
+      rgba(240,192,64,0.05) 50%,
+      rgba(0,229,255,0.03) 60%,
+      transparent 80%);
+    transform: translateX(-100%) rotate(0deg);
+    transition: transform 0.6s ease;
+    pointer-events: none;
+  }
+  .holo-card:hover::after { transform: translateX(100%); }
+
+  @media (max-width: 768px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    .box-grid { grid-template-columns: 1fr; }
+    .tiers-grid { grid-template-columns: 1fr; }
+    .how-steps { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .how-steps::before { display: none; }
+    .edge-inner { grid-template-columns: 1fr; gap: 3rem; }
+    .testimonials-grid { grid-template-columns: 1fr; }
+    .hero-stats { gap: 1.5rem; flex-wrap: wrap; }
+    footer { flex-direction: column; gap: 1.5rem; text-align: center; }
+    .footer-links { flex-wrap: wrap; justify-content: center; }
+    body { cursor: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-icon">⬡</div>
+    THE COLLECTORS VAULT 3D
+  </a>
+  <ul class="nav-links">
+    <li><a href="#whats-inside">What's Inside</a></li>
+    <li><a href="#tiers">Tiers</a></li>
+    <li><a href="#how">How It Works</a></li>
+  </ul>
+  <a href="#tiers" class="nav-cta">Join the Vault</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hex-grid"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <div class="hero-eyebrow">Monthly Filament Drops</div>
+
+  <h1 class="hero-title">
+    <span class="line1">RARE PULLS.</span>
+    <span class="line2">EVERY MONTH.</span>
+  </h1>
+
+  <p class="hero-subtitle">
+    Curated filament drops with gaming-season colorways, exclusive 3D printed collectibles, and Pokémon-inspired palettes — delivered to your door monthly. Built for collectors who actually print.
+  </p>
+
+  <div class="hero-cta-group">
+    <a href="#tiers" class="btn-primary">Open Your First Box</a>
+    <a href="#whats-inside" class="btn-ghost">See What's Inside</a>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">12+</div>
+      <div class="stat-label">New Colorways / Year</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <div class="stat-num">0%</div>
+      <div class="stat-label">Color Repeats Guaranteed</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <div class="stat-num">$0</div>
+      <div class="stat-label">Shipping, Always</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <div class="stat-num">3D</div>
+      <div class="stat-label">Exclusive Print Each Box</div>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT'S IN THE BOX -->
+<section class="box-section" id="whats-inside">
+  <div class="container">
+    <div class="section-label reveal">What's in the vault</div>
+    <h2 class="section-title reveal reveal-delay-1">Every box is a<br>rare drop.</h2>
+    <p class="section-body reveal reveal-delay-2">No filler. No repeats. Each shipment is themed around a gaming season, Pokémon set release, or collector palette — hand-curated by a maker who actually prints.</p>
+
+    <div class="box-grid reveal reveal-delay-2">
+      <div class="box-item holo-card">
+        <div class="box-item-num">01</div>
+        <span class="box-item-icon">🎨</span>
+        <div class="box-item-title">Themed Filament Spools</div>
+        <div class="box-item-desc">1–3 premium 1kg spools per tier, curated around gaming seasons, Pokémon set releases, and collector palettes. Brands like Polymaker, eSUN, and Bambu Lab.</div>
+      </div>
+      <div class="box-item featured holo-card">
+        <div class="box-item-num">02</div>
+        <span class="box-item-icon">⬡</span>
+        <div class="box-item-title">Exclusive 3D Print</div>
+        <div class="box-item-desc">A small printed collectible made fresh from The Collectors Vault 3D — Pokémon-adjacent figures, card stands, seasonal pieces. Subscriber-only. Never sold separately.</div>
+      </div>
+      <div class="box-item holo-card">
+        <div class="box-item-num">03</div>
+        <span class="box-item-icon">📋</span>
+        <div class="box-item-title">Spool Profile Card</div>
+        <div class="box-item-desc">Each filament comes with a profile card — optimal temps, speeds, and recommended print types. Skip the guesswork entirely.</div>
+      </div>
+      <div class="box-item holo-card">
+        <div class="box-item-num">04</div>
+        <span class="box-item-icon">🎁</span>
+        <div class="box-item-title">Vault Member Perks</div>
+        <div class="box-item-desc">Subscriber-only discount codes for The Collectors Vault 3D eBay store, early access to new colorway drops, and entry into monthly print contests.</div>
+      </div>
+    </div>
+
+    <!-- Colorway strip -->
+    <div class="reveal reveal-delay-3" style="margin-top:3rem">
+      <div class="section-label" style="margin-bottom:0.5rem">Sample colorways</div>
+      <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem;font-family:var(--font-heading);letter-spacing:0.05em">Hover to reveal — actual colors vary each month</p>
+      <div class="colorway-strip">
+        <div class="cw" style="background:linear-gradient(180deg,#e53935,#b71c1c)"><span class="cw-label" style="color:#fff">Scarlet Season</span></div>
+        <div class="cw" style="background:linear-gradient(180deg,#1a237e,#0d47a1)"><span class="cw-label" style="color:#90caf9">Deep Violet</span></div>
+        <div class="cw" style="background:linear-gradient(180deg,#f9a825,#f57f17)"><span class="cw-label" style="color:#1a1000">Shiny Gold</span></div>
+        <div class="cw" style="background:linear-gradient(180deg,#00838f,#006064)"><span class="cw-label" style="color:#b2ebf2">Aqua Vault</span></div>
+        <div class="cw" style="background:linear-gradient(180deg,#424242,#212121)"><span class="cw-label" style="color:#bdbdbd">Shadow Black</span></div>
+        <div class="cw" style="background:linear-gradient(180deg,#6a1b9a,#4a148c)"><span class="cw-label" style="color:#e1bee7">Ghost Type</span></div>
+        <div class="cw" style="background:linear-gradient(180deg,#1b5e20,#2e7d32)"><span class="cw-label" style="color:#a5d6a7">Forest Token</span></div>
+        <div class="cw" style="background:linear-gradient(180deg,#bf360c,#8d6e63)"><span class="cw-label" style="color:#fff">Copper Rare</span></div>
+        <div class="cw" style="background:linear-gradient(180deg,#e8eaf6,#c5cae9)"><span class="cw-label" style="color:#283593">Crystal Pack</span></div>
+        <div class="cw" style="background:linear-gradient(180deg,#e91e63,#880e4f)"><span class="cw-label" style="color:#fce4ec">Pokémon Pink</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TIERS -->
+<section class="tiers-section" id="tiers">
+  <div class="container">
+    <div class="section-label reveal">Subscription tiers</div>
+    <h2 class="section-title reveal reveal-delay-1">Choose your rarity.</h2>
+    <p class="section-body reveal reveal-delay-2">No long-term commitment. Skip, pause, or cancel anytime. All tiers ship free to the US.</p>
+
+    <div class="tiers-grid">
+      <!-- Common -->
+      <div class="tier-card reveal reveal-delay-1">
+        <div class="tier-name">Common</div>
+        <div class="tier-price"><sup>$</sup>24<span style="font-size:1.2rem;color:var(--text-muted)">.99</span></div>
+        <div class="tier-period">per month</div>
+        <hr class="tier-divider">
+        <ul class="tier-features">
+          <li class="highlight">1× themed 1kg spool</li>
+          <li>1× spool profile card</li>
+          <li>Monthly themed colorway</li>
+          <li>Vault member discount code</li>
+          <li>Community Discord access</li>
+        </ul>
+        <a href="#" class="tier-btn tier-btn-outline">Start Common</a>
+      </div>
+
+      <!-- Rare (featured) -->
+      <div class="tier-card featured reveal reveal-delay-2">
+        <div class="tier-glow"></div>
+        <div class="tier-name">Rare</div>
+        <div class="tier-price"><sup>$</sup>39<span style="font-size:1.2rem;color:var(--text-muted)">.99</span></div>
+        <div class="tier-period">per month</div>
+        <hr class="tier-divider">
+        <ul class="tier-features">
+          <li class="highlight">2× themed 1kg spools</li>
+          <li class="highlight">1× exclusive 3D printed collectible</li>
+          <li>2× spool profile cards</li>
+          <li>Specialty filament access (shimmer, matte, silk)</li>
+          <li>Early colorway reveals</li>
+          <li>Vault member discount code</li>
+          <li>Community Discord access</li>
+        </ul>
+        <a href="#" class="tier-btn tier-btn-gold">Start Rare — Best Value</a>
+      </div>
+
+      <!-- Ultra Rare -->
+      <div class="tier-card reveal reveal-delay-3">
+        <div class="tier-name">Ultra Rare</div>
+        <div class="tier-price"><sup>$</sup>59<span style="font-size:1.2rem;color:var(--text-muted)">.99</span></div>
+        <div class="tier-period">per month</div>
+        <hr class="tier-divider">
+        <ul class="tier-features">
+          <li class="highlight">3× themed 1kg spools</li>
+          <li class="highlight">1× exclusive 3D print (larger format)</li>
+          <li class="highlight">1× bonus mystery specialty spool</li>
+          <li>All profile cards</li>
+          <li>First access to new drops before public</li>
+          <li>Name in monthly community credits</li>
+          <li>Vault member discount code</li>
+          <li>Priority Discord role</li>
+        </ul>
+        <a href="#" class="tier-btn tier-btn-outline">Start Ultra Rare</a>
+      </div>
+    </div>
+
+    <p class="reveal" style="text-align:center;margin-top:2rem;font-size:0.8rem;color:var(--text-muted);font-family:var(--font-heading);letter-spacing:0.06em">
+      All plans bill monthly. No contracts. Cancel anytime before next billing date. US shipping always free.
+    </p>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how">
+  <div class="container">
+    <div class="section-label reveal" style="text-align:center">The process</div>
+    <h2 class="section-title reveal reveal-delay-1" style="text-align:center;margin:0 auto 0.5rem">How the vault works.</h2>
+
+    <div class="how-steps">
+      <div class="how-step reveal reveal-delay-1">
+        <div class="how-step-num">01</div>
+        <div class="how-step-title">Pick your tier</div>
+        <div class="how-step-desc">Common, Rare, or Ultra Rare. You can upgrade or downgrade anytime from your account dashboard.</div>
+      </div>
+      <div class="how-step reveal reveal-delay-2">
+        <div class="how-step-num">02</div>
+        <div class="how-step-title">We curate the drop</div>
+        <div class="how-step-desc">Every month we theme the box around a Pokémon set, gaming season, or collector palette. Filament brands vary — always premium.</div>
+      </div>
+      <div class="how-step reveal reveal-delay-3">
+        <div class="how-step-num">03</div>
+        <div class="how-step-title">It ships to your door</div>
+        <div class="how-step-desc">Free US shipping, always. Your box drops the 15th of each month. Track it live from your Vault account.</div>
+      </div>
+      <div class="how-step reveal reveal-delay-4">
+        <div class="how-step-num">04</div>
+        <div class="how-step-title">Print & show off</div>
+        <div class="how-step-desc">Post your prints to the Vault Discord. Best of the month wins bonus filament. The community votes.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EDGE / VISUAL SECTION -->
+<section class="edge-section">
+  <div class="container">
+    <div class="edge-inner">
+      <div>
+        <div class="section-label reveal">Why The Collectors Vault</div>
+        <h2 class="section-title reveal reveal-delay-1">Built by a<br>collector. For<br>collectors.</h2>
+        <p class="section-body reveal reveal-delay-2" style="margin-bottom:1.5rem">
+          The Collectors Vault 3D started as a Pokémon card and 3D printing shop. This subscription is the natural extension — themed colorways that align with set releases, exclusive prints you won't find anywhere else, and a community that actually gets it.
+        </p>
+        <div class="reveal reveal-delay-3" style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:10px;font-size:0.88rem;color:var(--text-secondary)">
+            <span style="color:var(--gold);font-size:0.8rem">▸</span> Pokémon set–aligned colorway calendar
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:0.88rem;color:var(--text-secondary)">
+            <span style="color:var(--gold);font-size:0.8rem">▸</span> Exclusive 3D prints made in-house — never outsourced
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:0.88rem;color:var(--text-secondary)">
+            <span style="color:var(--gold);font-size:0.8rem">▸</span> Zero color repeats within any 12-month window
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:0.88rem;color:var(--text-secondary)">
+            <span style="color:var(--gold);font-size:0.8rem">▸</span> Skip or pause any month — no questions asked
+          </div>
+        </div>
+      </div>
+
+      <div class="edge-visual reveal reveal-delay-2">
+        <div class="spool-stack">
+          <div class="spool spool-1"></div>
+          <div class="spool spool-2"></div>
+          <div class="spool spool-3"></div>
+          <div class="spool-center">⬡</div>
+        </div>
+        <div class="edge-tags">
+          <div class="edge-tag">Scarlet Season</div>
+          <div class="edge-tag">Holo Finish</div>
+          <div class="edge-tag">Ghost Type</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials-section">
+  <div class="container">
+    <div class="section-label reveal" style="text-align:center">Early members</div>
+    <h2 class="section-title reveal reveal-delay-1" style="text-align:center;margin:0 auto 0">What makers are saying.</h2>
+
+    <div class="testimonials-grid" style="margin-top:3rem">
+      <div class="testimonial holo-card reveal reveal-delay-1">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">The Scarlet Season colorway hit right when the new Pokémon set dropped. The timing was perfect and the filament quality was better than anything I've ordered off Amazon.</p>
+        <div class="testimonial-author">
+          <div class="author-avatar" style="background:rgba(229,57,53,0.15);color:#e53935">MK</div>
+          <div>
+            <div class="author-name">Mike K.</div>
+            <div class="author-handle">Bambu X1C • Founding Member</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial holo-card reveal reveal-delay-2">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">The exclusive print in the Rare tier is what sold me. Got a little Snorlax-style figure I didn't even know I needed. Community is great too — way more active than I expected.</p>
+        <div class="testimonial-author">
+          <div class="author-avatar" style="background:rgba(240,192,64,0.12);color:#f0c040">JT</div>
+          <div>
+            <div class="author-name">Jamie T.</div>
+            <div class="author-handle">Creality K1 Max • Rare Tier</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial holo-card reveal reveal-delay-3">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">Finally a sub box that doesn't just dump random spools on you. Every color has a theme and the profile cards mean I'm not wasting filament dialing in settings. Worth every dollar.</p>
+        <div class="testimonial-author">
+          <div class="author-avatar" style="background:rgba(0,229,255,0.1);color:#00e5ff">SR</div>
+          <div>
+            <div class="author-name">Sara R.</div>
+            <div class="author-handle">Prusa MK4 • Ultra Rare Tier</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+  <div class="container" style="position:relative;z-index:1;text-align:center">
+    <div class="founding-badge reveal">
+      <div class="founding-dot"></div>
+      Founding Member Spots Open
+    </div>
+    <h2 class="section-title reveal reveal-delay-1" style="margin:0 auto 1.2rem">Your next rare pull<br>is in the mail.</h2>
+    <p class="section-body reveal reveal-delay-2" style="margin:0 auto 3rem;text-align:center">
+      Founding members lock in their price forever — no increases as we grow. First 50 spots only.
+    </p>
+    <div class="hero-cta-group reveal reveal-delay-3" style="margin-top:0">
+      <a href="#tiers" class="btn-primary">Join the Vault Now</a>
+      <a href="https://thecollectorsvault3d.com" class="btn-ghost" target="_blank">Visit Our Shop</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">THE COLLECTORS VAULT 3D © 2025</div>
+  <ul class="footer-links">
+    <li><a href="#">FAQ</a></li>
+    <li><a href="#">Shipping Policy</a></li>
+    <li><a href="#">Cancel Anytime</a></li>
+    <li><a href="https://thecollectorsvault3d.com">Main Store</a></li>
+  </ul>
+  <div class="footer-copy">thecollectorsvault3d.com</div>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.transform = `translate(${mx - 5}px, ${my - 5}px)`;
+  });
+  function animRing() {
+    rx += (mx - rx - 16) * 0.12;
+    ry += (my - ry - 16) * 0.12;
+    ring.style.transform = `translate(${rx}px, ${ry}px)`;
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+  document.querySelectorAll('a, button, .cw, .tier-card, .box-item').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.transform += ' scale(1.8)';
+      ring.style.width = '48px'; ring.style.height = '48px';
+      ring.style.opacity = '0.6';
+    });
+    el.addEventListener('mouseleave', () => {
+      ring.style.width = '32px'; ring.style.height = '32px';
+      ring.style.opacity = '1';
+    });
+  });
+
+  // Scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+  }, { threshold: 0.12 });
+  revealEls.forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
