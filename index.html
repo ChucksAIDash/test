@@ -322,8 +322,7 @@
 
   /* ── REVIEWS ── */
   #reviews { background: var(--black); }
-  .reviews-header { margin-bottom: 3rem; }
-  .reviews-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+  .reviews-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
   .review-card { background: var(--dark); border: 1px solid rgba(255,255,255,0.06); padding: 1.75rem; border-radius: 2px; }
   .stars { display: flex; gap: 3px; margin-bottom: 1rem; }
   .star { width: 14px; height: 14px; background: var(--yellow); clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
@@ -333,6 +332,8 @@
   .reviewer-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--yellow-dim); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; color: var(--white); flex-shrink: 0; }
   .reviewer-name { font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--white); }
   .reviewer-vehicle { font-size: 0.78rem; color: var(--silver); }
+  @media (max-width: 1000px) { .reviews-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .reviews-grid { grid-template-columns: 1fr; } }
 
   /* ── MAP ── */
   .map-section { background: var(--dark); padding: 0; }
@@ -448,6 +449,72 @@
   }
   .btn-dark:hover { background: #2a2a2a; transform: translateY(-1px); }
 
+  /* ── PRINT BUTTON ── */
+  .print-btn {
+    position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 250;
+    display: flex; align-items: center; gap: 0.5rem;
+    font-family: var(--font-display); font-size: 0.78rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--silver); background: var(--dark2);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 2px;
+    padding: 0.55rem 1rem; cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  }
+  .print-btn:hover { color: var(--yellow); border-color: rgba(245,197,24,0.35); background: var(--dark3); }
+  .print-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
+  @media (max-width: 900px) { .print-btn { display: none; } }
+
+  /* ── PRINT STYLES ── */
+  @media print {
+    *, *::before, *::after { box-sizing: border-box; }
+    body { background: #fff !important; color: #111 !important; font-family: Georgia, serif; padding: 0; margin: 0; }
+    .site-nav, .mobile-nav, #nav-toggle, .nav-toggle-label,
+    .marquee-strip, .photo-strip, .hotrod-callout,
+    .hero-bg, .hero-stats, .hero-actions,
+    #services, #booking, #reviews,
+    .map-section, .mobile-call-bar, .print-btn,
+    footer .footer-social, footer .footer-col,
+    .cal-wrapper { display: none !important; }
+    .hero {
+      min-height: auto; padding: 2rem 2rem 1rem;
+      background: none !important; border-bottom: 2px solid #f5c518;
+      page-break-after: avoid;
+    }
+    .hero-content { max-width: 100%; }
+    .hero-tag { color: #b8920f; font-family: Georgia, serif; font-size: 0.75rem; letter-spacing: 0.1em; }
+    .hero h1 { font-family: Georgia, serif; font-size: 2.2rem; color: #111; line-height: 1.1; margin-bottom: 0.5rem; }
+    .hero h1 .accent { color: #b8920f; }
+    .hero p { color: #444; font-size: 0.95rem; }
+    #about {
+      display: block !important; padding: 1.5rem 2rem;
+      page-break-inside: avoid;
+    }
+    .about-img-wrap { display: none !important; }
+    .about-text { padding: 0; }
+    .section-title { font-family: Georgia, serif; font-size: 1.4rem; color: #111; }
+    .section-sub { color: #444; font-size: 0.9rem; }
+    .section-label { color: #b8920f; font-size: 0.72rem; letter-spacing: 0.15em; }
+    .about-features { margin-top: 1rem; gap: 0.75rem; }
+    .about-feat h4 { color: #111; font-size: 0.88rem; }
+    .about-feat p { color: #555; font-size: 0.82rem; }
+    .about-feat-icon { border-color: #ccc; background: #f5f5f5; }
+    .about-feat-icon svg { stroke: #b8920f; }
+    footer {
+      display: block !important; background: none !important;
+      border-top: 1px solid #ccc; padding: 1rem 2rem;
+      page-break-before: avoid;
+    }
+    .footer-top { grid-template-columns: 1fr !important; gap: 0.5rem; }
+    .footer-brand p { color: #444; font-size: 0.82rem; }
+    .nav-logo { color: #111 !important; font-size: 1.2rem !important; }
+    .nav-logo span { color: #b8920f !important; }
+    .footer-bottom { border-color: #ddd; }
+    .footer-bottom p { color: #888 !important; font-size: 0.78rem; }
+    a { color: inherit; text-decoration: none; }
+    @page { margin: 0.6in 0.75in; }
+  }
+
   /* ── STICKY MOBILE CALL BAR ── */
   .mobile-call-bar {
     display: none; /* shown via media query */
@@ -511,7 +578,7 @@
 <!-- NAV -->
 <nav class="site-nav">
   <div class="nav-inner">
-    <a href="#" class="nav-logo">All <span>&</span> Auto Truck</a>
+    <a href="#" class="nav-logo">All Auto &amp; <span>Truck</span></a>
     <ul class="nav-links">
       <li><a href="#services">Services</a></li>
       <li><a href="#about">About</a></li>
@@ -740,25 +807,45 @@
 
 <!-- REVIEWS -->
 <section id="reviews">
-  <div class="reviews-header">
-    <p class="section-label">Customer Reviews</p>
-    <h2 class="section-title">What Our<br>Customers Say</h2>
+  <div class="reviews-header" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1.5rem;margin-bottom:3rem;">
+    <div>
+      <p class="section-label">Customer Reviews</p>
+      <h2 class="section-title">What Our<br>Customers Say</h2>
+    </div>
+    <a href="https://www.google.com/maps/place/All+Auto+%26+Truck/@41.9317,-88.0045,17z" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:0.5rem;font-family:var(--font-display);font-size:0.82rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--yellow);text-decoration:none;border:1px solid rgba(245,197,24,0.25);padding:0.5rem 1rem;border-radius:2px;transition:background 0.2s;" onmouseover="this.style.background='rgba(245,197,24,0.08)'" onmouseout="this.style.background='transparent'">
+      ★ See All Reviews on Google
+    </a>
   </div>
   <div class="reviews-grid">
     <div class="review-card">
       <div class="stars"><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div></div>
-      <p class="review-text">Brought my F-250 in for a brake job and they had it done same day. Honest about what actually needed fixing — didn't try to upsell me on stuff I didn't need. Will definitely be back.</p>
-      <div class="reviewer"><div class="reviewer-avatar">MT</div><div><div class="reviewer-name">Mike T.</div><div class="reviewer-vehicle">2020 Ford F-250</div></div></div>
+      <p class="review-text">Mark and his guys have taken care of our entire family's cars for YEARS! The best around!</p>
+      <div class="reviewer"><div class="reviewer-avatar">MG</div><div><div class="reviewer-name">Marissa G.</div><div class="reviewer-vehicle">Google Review · Local Guide</div></div></div>
     </div>
     <div class="review-card">
       <div class="stars"><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div></div>
-      <p class="review-text">Finally found a mechanic I actually trust. They explained everything before touching my car, gave me a written estimate, and came in under budget. Family-run business with real integrity.</p>
-      <div class="reviewer"><div class="reviewer-avatar">SR</div><div><div class="reviewer-name">Sandra R.</div><div class="reviewer-vehicle">2018 Honda CR-V</div></div></div>
+      <p class="review-text">Outstanding service, fast, great price. These people know how to fix a car. Very responsive. Mechanics are fantastic. Clean shop, very professional.</p>
+      <div class="reviewer"><div class="reviewer-avatar">EW</div><div><div class="reviewer-name">Eric W.</div><div class="reviewer-vehicle">Google Review</div></div></div>
     </div>
     <div class="review-card">
       <div class="stars"><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div></div>
-      <p class="review-text">My check engine light had been on for months. They ran diagnostics, found the issues, fixed them the same afternoon. Friendly, fast, and fairly priced. This is my shop now.</p>
-      <div class="reviewer"><div class="reviewer-avatar">DJ</div><div><div class="reviewer-name">David J.</div><div class="reviewer-vehicle">2016 Chevy Silverado</div></div></div>
+      <p class="review-text">This is a great mechanic shop. They get your vehicle in and out as quickly as possible. Great prices. I've had 3 of my vehicles worked on here and I won't take my cars anywhere else. Highly recommend.</p>
+      <div class="reviewer"><div class="reviewer-avatar">WC</div><div><div class="reviewer-name">Wes C.</div><div class="reviewer-vehicle">Google Review · Local Guide</div></div></div>
+    </div>
+    <div class="review-card">
+      <div class="stars"><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div></div>
+      <p class="review-text">Mark and his guys are the best. He takes care of my truck every time.</p>
+      <div class="reviewer"><div class="reviewer-avatar">TM</div><div><div class="reviewer-name">Tommy M.</div><div class="reviewer-vehicle">Google Review · Local Guide</div></div></div>
+    </div>
+    <div class="review-card">
+      <div class="stars"><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div></div>
+      <p class="review-text">Owner is great, good employees, great work done. Will repair what's needed to keep your car going — real straight shooter.</p>
+      <div class="reviewer"><div class="reviewer-avatar">HA</div><div><div class="reviewer-name">Henry A.</div><div class="reviewer-vehicle">Google Review · Local Guide</div></div></div>
+    </div>
+    <div class="review-card">
+      <div class="stars"><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div></div>
+      <p class="review-text">Five star service. Definitely an auto and truck repair shop people can trust!</p>
+      <div class="reviewer"><div class="reviewer-avatar">PD</div><div><div class="reviewer-name">Pete D.</div><div class="reviewer-vehicle">Google Review · Local Guide</div></div></div>
     </div>
   </div>
 </section>
@@ -796,7 +883,7 @@
 <footer>
   <div class="footer-top">
     <div class="footer-brand">
-      <a href="#" class="nav-logo">All <span>&</span> Auto Truck</a>
+      <a href="#" class="nav-logo">All Auto &amp; <span>Truck</span></a>
       <p>A wide range of automotive repairs — from Gramma's grocery getter to hot rods. Also many light duty trucks. Serving Addison, IL.</p>
       <div class="footer-social">
         <a href="https://www.facebook.com/p/All-Auto-And-Truck-100057285556427/" target="_blank" aria-label="Facebook">
@@ -909,7 +996,13 @@
     sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
     navLinks.forEach(a => { a.style.color = a.getAttribute('href') === '#' + current ? 'var(--white)' : ''; });
   });
-</script><!-- STICKY MOBILE CALL BAR -->
+</script><!-- PRINT BUTTON -->
+<button class="print-btn" onclick="window.print()" aria-label="Print or save as PDF">
+  <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+  Print / Save PDF
+</button>
+
+<!-- STICKY MOBILE CALL BAR -->
 <div class="mobile-call-bar" role="navigation" aria-label="Quick contact">
   <div class="mobile-call-bar-inner">
     <a href="tel:6309355750" class="mob-call-btn" aria-label="Call us">
