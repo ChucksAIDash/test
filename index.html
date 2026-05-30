@@ -404,14 +404,15 @@
     </label>
   </div>
 
-  <!-- Mobile dropdown — shown when checkbox is checked -->
-  <div class="mobile-nav">
-    <a href="#services" onclick="document.getElementById('nav-toggle').checked=false">Services</a>
-    <a href="#about" onclick="document.getElementById('nav-toggle').checked=false">About</a>
-    <a href="#reviews" onclick="document.getElementById('nav-toggle').checked=false">Reviews</a>
-    <a href="#booking" class="mob-cta" onclick="document.getElementById('nav-toggle').checked=false">Book Appointment</a>
-  </div>
 </nav>
+
+<!-- Mobile dropdown — direct sibling of #nav-toggle so CSS ~ selector works -->
+<div class="mobile-nav">
+  <a href="#services" onclick="document.getElementById('nav-toggle').checked=false">Services</a>
+  <a href="#about" onclick="document.getElementById('nav-toggle').checked=false">About</a>
+  <a href="#reviews" onclick="document.getElementById('nav-toggle').checked=false">Reviews</a>
+  <a href="#booking" class="mob-cta" onclick="document.getElementById('nav-toggle').checked=false">Book Appointment</a>
+</div>
 
 <!-- HERO -->
 <section class="hero" id="home">
