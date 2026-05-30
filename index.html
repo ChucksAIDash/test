@@ -28,66 +28,96 @@
   html { scroll-behavior: smooth; }
   body { background: var(--black); color: var(--white); font-family: var(--font-body); font-weight: 400; line-height: 1.6; overflow-x: hidden; }
 
-  /* ── NAV ── */
-  nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 3rem; height: 68px;
+  /* ═══════════════════════════════
+     NAV — DESKTOP
+  ═══════════════════════════════ */
+  .site-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
     background: rgba(14,14,14,0.97);
     border-bottom: 1px solid rgba(245,197,24,0.2);
     backdrop-filter: blur(8px);
   }
+  .nav-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 3rem; height: 68px;
+  }
   .nav-logo {
     font-family: var(--font-display); font-weight: 800; font-size: 1.5rem;
     letter-spacing: 0.03em; color: var(--white); text-decoration: none; text-transform: uppercase;
+    z-index: 201; position: relative;
   }
   .nav-logo span { color: var(--yellow); }
-  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+
+  /* Desktop links */
+  .nav-links {
+    display: flex; gap: 2.5rem; list-style: none;
+  }
   .nav-links a {
     font-family: var(--font-display); font-size: 0.95rem; font-weight: 600;
-    letter-spacing: 0.08em; text-transform: uppercase; color: var(--silver); text-decoration: none; transition: color 0.2s;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--silver); text-decoration: none; transition: color 0.2s;
   }
   .nav-links a:hover { color: var(--white); }
   .nav-cta {
     background: var(--yellow) !important; color: var(--black) !important;
-    padding: 0.5rem 1.25rem; border-radius: 2px; transition: background 0.2s !important;
+    padding: 0.5rem 1.25rem; border-radius: 2px;
   }
-  .nav-cta:hover { background: var(--yellow-light) !important; color: var(--black) !important; }
+  .nav-cta:hover { background: var(--yellow-light) !important; }
 
-  /* ── HAMBURGER ── */
-  .nav-hamburger {
-    display: none; flex-direction: column; justify-content: center; gap: 5px;
-    width: 36px; height: 36px; cursor: pointer; background: none; border: none; padding: 4px;
+  /* ═══════════════════════════════
+     MOBILE NAV — pure CSS checkbox
+     No JavaScript required
+  ═══════════════════════════════ */
+
+  /* Hide the checkbox itself */
+  #nav-toggle { display: none; }
+
+  /* Hamburger label — hidden on desktop */
+  .nav-toggle-label {
+    display: none;
+    flex-direction: column; justify-content: center; gap: 5px;
+    width: 40px; height: 40px; cursor: pointer;
+    position: relative; z-index: 201;
   }
-  .nav-hamburger span {
-    display: block; height: 2px; background: var(--white); border-radius: 2px;
-    transition: transform 0.25s, opacity 0.25s, width 0.25s;
+  .nav-toggle-label span {
+    display: block; height: 2px; width: 24px;
+    background: var(--white); border-radius: 2px;
+    transition: transform 0.25s, opacity 0.25s;
     transform-origin: center;
   }
-  .nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-  .nav-hamburger.open span:nth-child(2) { opacity: 0; }
-  .nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-  /* ── MOBILE MENU DRAWER ── */
-  /* On desktop: hidden entirely. On mobile: visible as flex but collapsed via max-height */
-  .mobile-menu {
+  /* Animate to X when checked */
+  #nav-toggle:checked ~ .nav-inner .nav-toggle-label span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  #nav-toggle:checked ~ .nav-inner .nav-toggle-label span:nth-child(2) { opacity: 0; }
+  #nav-toggle:checked ~ .nav-inner .nav-toggle-label span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* Mobile dropdown — hidden by default */
+  .mobile-nav {
     display: none;
+    flex-direction: column;
+    background: #111;
+    border-top: 1px solid rgba(245,197,24,0.15);
+    border-bottom: 2px solid rgba(245,197,24,0.3);
   }
-
-  .mobile-menu a {
-    font-family: var(--font-display); font-size: 1.3rem; font-weight: 700;
+  .mobile-nav a {
+    font-family: var(--font-display); font-size: 1.4rem; font-weight: 700;
     letter-spacing: 0.08em; text-transform: uppercase;
     color: var(--silver-light); text-decoration: none;
-    padding: 0.85rem 0; border-bottom: 1px solid rgba(255,255,255,0.06);
-    transition: color 0.2s;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: block;
   }
-  .mobile-menu a:hover { color: var(--yellow); }
-  .mobile-menu a:last-child { border-bottom: none; }
-  .mobile-menu .mob-cta {
-    margin-top: 1rem; text-align: center; background: var(--yellow);
-    color: var(--black) !important; padding: 0.9rem; border-radius: 2px; border-bottom: none !important;
+  .mobile-nav a:last-child { border-bottom: none; }
+  .mobile-nav a:hover { color: var(--yellow); background: rgba(245,197,24,0.05); }
+  .mobile-nav .mob-cta {
+    background: var(--yellow); color: var(--black) !important;
+    text-align: center; margin: 1rem 1.5rem 1.25rem;
+    border-radius: 2px; border-bottom: none !important;
   }
-  .mobile-menu .mob-cta:hover { background: var(--yellow-light) !important; }
+  .mobile-nav .mob-cta:hover { background: var(--yellow-light) !important; }
+
+  /* Show mobile nav when checkbox is checked */
+  #nav-toggle:checked ~ .mobile-nav { display: flex; }
 
   /* ── HOURS BADGE ── */
   .hours-badge {
@@ -98,9 +128,7 @@
     border: 1px solid rgba(255,255,255,0.1);
     margin-left: 1rem; vertical-align: middle;
   }
-  .hours-badge .dot {
-    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
-  }
+  .hours-badge .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
   .hours-badge.open-now { color: #4ade80; border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.08); }
   .hours-badge.open-now .dot { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
   .hours-badge.closed-now { color: var(--silver); border-color: rgba(168,173,181,0.2); background: rgba(168,173,181,0.05); }
@@ -138,7 +166,6 @@
   .hero h1 .accent { color: var(--yellow); }
   .hero p { font-size: 1.1rem; font-weight: 300; color: var(--silver-light); max-width: 520px; margin-bottom: 2.5rem; line-height: 1.7; }
   .hero-actions { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
-
   .btn-primary {
     font-family: var(--font-display); font-size: 1rem; font-weight: 700;
     letter-spacing: 0.08em; text-transform: uppercase;
@@ -148,7 +175,6 @@
     transition: background 0.2s, transform 0.15s;
   }
   .btn-primary:hover { background: var(--yellow-light); transform: translateY(-1px); }
-
   .btn-outline {
     font-family: var(--font-display); font-size: 1rem; font-weight: 600;
     letter-spacing: 0.08em; text-transform: uppercase;
@@ -157,7 +183,6 @@
     cursor: pointer; text-decoration: none; display: inline-block; transition: border-color 0.2s, color 0.2s;
   }
   .btn-outline:hover { border-color: var(--silver-light); color: var(--white); }
-
   .hero-stats {
     position: relative; z-index: 1; display: flex; gap: 3rem;
     margin-top: 4rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.08);
@@ -259,37 +284,21 @@
   .contact-item span { font-size: 0.95rem; color: var(--white); }
 
   /* ── CAL EMBED ── */
-  .cal-wrapper {
-    background: var(--dark2); border: 1px solid rgba(245,197,24,0.15);
-    border-radius: 2px; overflow: hidden;
-  }
+  .cal-wrapper { background: var(--dark2); border: 1px solid rgba(245,197,24,0.15); border-radius: 2px; overflow: hidden; }
   .cal-header {
     background: var(--dark3); padding: 1.25rem 1.75rem;
     border-bottom: 1px solid rgba(245,197,24,0.12);
     display: flex; align-items: center; justify-content: space-between;
   }
-  .cal-header h3 {
-    font-family: var(--font-display); font-size: 1.1rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.05em; color: var(--white);
-  }
+  .cal-header h3 { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--white); }
   .cal-badge {
-    font-family: var(--font-display); font-size: 0.7rem; font-weight: 700;
-    letter-spacing: 0.1em; text-transform: uppercase;
-    background: rgba(245,197,24,0.12); color: var(--yellow);
-    border: 1px solid rgba(245,197,24,0.25); padding: 0.25rem 0.6rem; border-radius: 2px;
+    font-family: var(--font-display); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    background: rgba(245,197,24,0.12); color: var(--yellow); border: 1px solid rgba(245,197,24,0.25); padding: 0.25rem 0.6rem; border-radius: 2px;
   }
   .cal-mock { width: 100%; padding: 1.5rem 1.75rem; display: flex; flex-direction: column; gap: 1.25rem; }
-  .cal-mock-month {
-    font-family: var(--font-display); font-size: 0.8rem; font-weight: 600;
-    letter-spacing: 0.12em; text-transform: uppercase; color: var(--silver);
-    text-align: center; margin-bottom: 0.5rem;
-  }
+  .cal-mock-month { font-family: var(--font-display); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--silver); text-align: center; margin-bottom: 0.5rem; }
   .cal-mock-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 1rem; }
-  .cal-day {
-    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-    font-family: var(--font-display); font-size: 0.85rem; font-weight: 600; border-radius: 2px;
-    cursor: pointer; transition: background 0.15s;
-  }
+  .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 0.85rem; font-weight: 600; border-radius: 2px; cursor: pointer; transition: background 0.15s; }
   .cal-day.header { color: var(--silver); font-size: 0.72rem; cursor: default; }
   .cal-day.empty { opacity: 0; pointer-events: none; }
   .cal-day.unavailable { color: var(--dark3); cursor: default; }
@@ -298,26 +307,13 @@
   .cal-day.selected { background: var(--yellow); color: var(--black); }
   .cal-day.today { border: 1px solid rgba(245,197,24,0.4); color: var(--yellow); }
   .cal-times { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .cal-time {
-    font-family: var(--font-display); font-size: 0.85rem; font-weight: 600;
-    text-align: center; padding: 0.55rem 0.5rem; border-radius: 2px; cursor: pointer;
-    background: rgba(255,255,255,0.04); color: var(--silver-light); border: 1px solid rgba(255,255,255,0.07);
-    transition: all 0.15s;
-  }
+  .cal-time { font-family: var(--font-display); font-size: 0.85rem; font-weight: 600; text-align: center; padding: 0.55rem 0.5rem; border-radius: 2px; cursor: pointer; background: rgba(255,255,255,0.04); color: var(--silver-light); border: 1px solid rgba(255,255,255,0.07); transition: all 0.15s; }
   .cal-time:hover { background: rgba(245,197,24,0.12); border-color: rgba(245,197,24,0.3); color: var(--yellow); }
   .cal-time.selected { background: var(--yellow); color: var(--black); border-color: var(--yellow); }
-  .cal-confirm {
-    width: 100%; padding: 0.9rem; font-family: var(--font-display); font-size: 1rem;
-    font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--black); background: var(--yellow); border: none; border-radius: 2px; cursor: pointer;
-    transition: background 0.2s; margin-top: 0.5rem;
-  }
+  .cal-confirm { width: 100%; padding: 0.9rem; font-family: var(--font-display); font-size: 1rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--black); background: var(--yellow); border: none; border-radius: 2px; cursor: pointer; transition: background 0.2s; margin-top: 0.5rem; }
   .cal-confirm:hover { background: var(--yellow-light); }
   .cal-note { font-size: 0.78rem; color: var(--silver); text-align: center; }
-  .cal-powered {
-    padding: 0.75rem 1.75rem; border-top: 1px solid rgba(255,255,255,0.05);
-    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-  }
+  .cal-powered { padding: 0.75rem 1.75rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
   .cal-powered span { font-size: 0.75rem; color: var(--silver); }
   .cal-powered strong { font-size: 0.75rem; color: var(--silver-light); }
 
@@ -327,41 +323,24 @@
   .reviews-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
   .review-card { background: var(--dark); border: 1px solid rgba(255,255,255,0.06); padding: 1.75rem; border-radius: 2px; }
   .stars { display: flex; gap: 3px; margin-bottom: 1rem; }
-  .star {
-    width: 14px; height: 14px; background: var(--yellow);
-    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-  }
+  .star { width: 14px; height: 14px; background: var(--yellow); clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
   .review-text { font-size: 0.92rem; color: var(--silver-light); line-height: 1.7; margin-bottom: 1.25rem; font-style: italic; }
   .review-text::before { content: '"'; color: var(--yellow); font-size: 1.5rem; line-height: 0; vertical-align: -0.3em; margin-right: 0.1rem; }
   .reviewer { display: flex; align-items: center; gap: 0.75rem; }
-  .reviewer-avatar {
-    width: 36px; height: 36px; border-radius: 50%; background: var(--yellow-dim);
-    display: flex; align-items: center; justify-content: center;
-    font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; color: var(--white); flex-shrink: 0;
-  }
+  .reviewer-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--yellow-dim); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; color: var(--white); flex-shrink: 0; }
   .reviewer-name { font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--white); }
   .reviewer-vehicle { font-size: 0.78rem; color: var(--silver); }
 
   /* ── MAP ── */
   .map-section { background: var(--dark); padding: 0; }
   .map-inner { display: grid; grid-template-columns: 1fr 1.8fr; }
-  .map-info {
-    padding: 3.5rem 3rem; display: flex; flex-direction: column; justify-content: center; gap: 1.25rem;
-  }
-  .map-info h3 {
-    font-family: var(--font-display); font-size: 1.6rem; font-weight: 800;
-    text-transform: uppercase; color: var(--white); line-height: 1;
-  }
+  .map-info { padding: 3.5rem 3rem; display: flex; flex-direction: column; justify-content: center; gap: 1.25rem; }
+  .map-info h3 { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; text-transform: uppercase; color: var(--white); line-height: 1; }
   .map-detail { display: flex; align-items: flex-start; gap: 0.75rem; }
   .map-detail svg { width: 18px; height: 18px; stroke: var(--yellow); fill: none; stroke-width: 1.8; flex-shrink: 0; margin-top: 2px; }
   .map-detail p { font-size: 0.9rem; color: var(--silver); line-height: 1.5; }
   .map-detail p strong { color: var(--white); font-weight: 500; }
-  .map-directions {
-    display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;
-    font-family: var(--font-display); font-size: 0.85rem; font-weight: 700;
-    letter-spacing: 0.08em; text-transform: uppercase; color: var(--yellow);
-    text-decoration: none; transition: color 0.2s;
-  }
+  .map-directions { display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--yellow); text-decoration: none; transition: color 0.2s; }
   .map-directions:hover { color: var(--yellow-light); }
   .map-directions svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
   .map-embed { width: 100%; height: 320px; display: block; border: none; filter: grayscale(40%) contrast(1.1); }
@@ -372,41 +351,24 @@
   .footer-brand .nav-logo { display: block; margin-bottom: 1rem; font-size: 1.4rem; }
   .footer-brand p { font-size: 0.88rem; color: var(--silver); line-height: 1.7; max-width: 280px; margin-bottom: 1rem; }
   .footer-social { display: flex; gap: 0.6rem; }
-  .footer-social a {
-    width: 34px; height: 34px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 2px; display: flex; align-items: center; justify-content: center;
-    transition: background 0.2s, border-color 0.2s;
-  }
+  .footer-social a { width: 34px; height: 34px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 2px; display: flex; align-items: center; justify-content: center; transition: background 0.2s, border-color 0.2s; }
   .footer-social a:hover { background: rgba(245,197,24,0.12); border-color: rgba(245,197,24,0.3); }
   .footer-social a svg { width: 16px; height: 16px; fill: var(--silver); transition: fill 0.2s; }
   .footer-social a:hover svg { fill: var(--yellow); }
-  .footer-col h4 {
-    font-family: var(--font-display); font-size: 0.8rem; font-weight: 700;
-    letter-spacing: 0.14em; text-transform: uppercase; color: var(--silver); margin-bottom: 1rem;
-  }
+  .footer-col h4 { font-family: var(--font-display); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--silver); margin-bottom: 1rem; }
   .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
   .footer-col ul li a { font-size: 0.9rem; color: var(--silver); text-decoration: none; transition: color 0.2s; }
   .footer-col ul li a:hover { color: var(--yellow); }
-  .footer-bottom {
-    border-top: 1px solid rgba(255,255,255,0.07); padding-top: 1.5rem;
-    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
-  }
+  .footer-bottom { border-top: 1px solid rgba(255,255,255,0.07); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
   .footer-bottom p { font-size: 0.82rem; color: var(--silver); }
 
-  /* ── MOBILE ── */
+  /* ═══════════════════════════════
+     MOBILE RESPONSIVE
+  ═══════════════════════════════ */
   @media (max-width: 900px) {
-    nav { padding: 0 1.5rem; }
+    .nav-inner { padding: 0 1.5rem; }
     .nav-links { display: none; }
-    .nav-hamburger { display: flex; }
-    .mobile-menu {
-      display: flex; flex-direction: column;
-      position: fixed; top: 68px; left: 0; right: 0; z-index: 98;
-      background: #0e0e0e; border-bottom: 2px solid rgba(245,197,24,0.25);
-      padding: 1rem 1.5rem 1.75rem;
-      max-height: 0; overflow: hidden;
-      transition: max-height 0.35s ease;
-    }
-    .mobile-menu.open { display: flex; max-height: 600px; }
+    .nav-toggle-label { display: flex; }
     section { padding: 3.5rem 1.5rem; }
     #about { grid-template-columns: 1fr; gap: 2rem; }
     .about-badge { right: 0; bottom: -1rem; }
@@ -423,26 +385,32 @@
 </head>
 <body>
 
-<!-- NAV -->
-<nav>
-  <a href="#" class="nav-logo">All <span>&</span> Auto Truck</a>
-  <ul class="nav-links">
-    <li><a href="#services">Services</a></li>
-    <li><a href="#about">About</a></li>
-    <li><a href="#reviews">Reviews</a></li>
-    <li><a href="#booking" class="nav-cta">Book Appointment</a></li>
-  </ul>
-  <button class="nav-hamburger" id="hamburger" aria-label="Open menu">
-    <span></span><span></span><span></span>
-  </button>
-</nav>
+<!-- HIDDEN CHECKBOX — controls mobile nav, no JS needed -->
+<input type="checkbox" id="nav-toggle">
 
-<!-- MOBILE MENU DRAWER -->
-<nav class="mobile-menu" id="mobileMenu">
-  <a href="#services" class="mob-link">Services</a>
-  <a href="#about" class="mob-link">About</a>
-  <a href="#reviews" class="mob-link">Reviews</a>
-  <a href="#booking" class="mob-cta">Book Appointment</a>
+<!-- NAV -->
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">All <span>&</span> Auto Truck</a>
+    <ul class="nav-links">
+      <li><a href="#services">Services</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#reviews">Reviews</a></li>
+      <li><a href="#booking" class="nav-cta">Book Appointment</a></li>
+    </ul>
+    <!-- Hamburger label toggles the checkbox -->
+    <label class="nav-toggle-label" for="nav-toggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </label>
+  </div>
+
+  <!-- Mobile dropdown — shown when checkbox is checked -->
+  <div class="mobile-nav">
+    <a href="#services" onclick="document.getElementById('nav-toggle').checked=false">Services</a>
+    <a href="#about" onclick="document.getElementById('nav-toggle').checked=false">About</a>
+    <a href="#reviews" onclick="document.getElementById('nav-toggle').checked=false">Reviews</a>
+    <a href="#booking" class="mob-cta" onclick="document.getElementById('nav-toggle').checked=false">Book Appointment</a>
+  </div>
 </nav>
 
 <!-- HERO -->
@@ -593,8 +561,6 @@
       </div>
     </div>
   </div>
-
-  <!-- CAL.COM PLACEHOLDER -->
   <div class="cal-wrapper">
     <div class="cal-header">
       <h3>Select a Date & Time</h3>
@@ -628,26 +594,17 @@
     <div class="review-card">
       <div class="stars"><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div></div>
       <p class="review-text">Brought my F-250 in for a brake job and they had it done same day. Honest about what actually needed fixing — didn't try to upsell me on stuff I didn't need. Will definitely be back.</p>
-      <div class="reviewer">
-        <div class="reviewer-avatar">MT</div>
-        <div><div class="reviewer-name">Mike T.</div><div class="reviewer-vehicle">2020 Ford F-250</div></div>
-      </div>
+      <div class="reviewer"><div class="reviewer-avatar">MT</div><div><div class="reviewer-name">Mike T.</div><div class="reviewer-vehicle">2020 Ford F-250</div></div></div>
     </div>
     <div class="review-card">
       <div class="stars"><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div></div>
       <p class="review-text">Finally found a mechanic I actually trust. They explained everything before touching my car, gave me a written estimate, and came in under budget. Family-run business with real integrity.</p>
-      <div class="reviewer">
-        <div class="reviewer-avatar">SR</div>
-        <div><div class="reviewer-name">Sandra R.</div><div class="reviewer-vehicle">2018 Honda CR-V</div></div>
-      </div>
+      <div class="reviewer"><div class="reviewer-avatar">SR</div><div><div class="reviewer-name">Sandra R.</div><div class="reviewer-vehicle">2018 Honda CR-V</div></div></div>
     </div>
     <div class="review-card">
       <div class="stars"><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div></div>
       <p class="review-text">My check engine light had been on for months. They ran diagnostics, found the issues, fixed them the same afternoon. Friendly, fast, and fairly priced. This is my shop now.</p>
-      <div class="reviewer">
-        <div class="reviewer-avatar">DJ</div>
-        <div><div class="reviewer-name">David J.</div><div class="reviewer-vehicle">2016 Chevy Silverado</div></div>
-      </div>
+      <div class="reviewer"><div class="reviewer-avatar">DJ</div><div><div class="reviewer-name">David J.</div><div class="reviewer-vehicle">2016 Chevy Silverado</div></div></div>
     </div>
   </div>
 </section>
@@ -671,15 +628,12 @@
         <p><strong>(630) 935-5750</strong></p>
       </div>
       <a class="map-directions" href="https://maps.google.com/?q=463+S+Vista+Ave+Addison+IL+60101" target="_blank">
-        Get Directions
-        <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Get Directions <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </a>
     </div>
-    <iframe
-      class="map-embed"
+    <iframe class="map-embed"
       src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2969.3!2d-88.0045!3d41.9317!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x880fb5b1b1b1b1b1%3A0x1!2s463+S+Vista+Ave%2C+Addison%2C+IL+60101!5e0!3m2!1sen!2sus!4v1"
-      allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
-      title="All Auto & Truck location map">
+      allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="All Auto & Truck location map">
     </iframe>
   </div>
 </div>
@@ -692,7 +646,7 @@
       <p>A wide range of automotive repairs — from Gramma's grocery getter to hot rods. Also many light duty trucks. Serving Addison, IL.</p>
       <div class="footer-social">
         <a href="https://www.facebook.com/p/All-Auto-And-Truck-100057285556427/" target="_blank" aria-label="Facebook">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
         </a>
       </div>
     </div>
@@ -727,37 +681,16 @@
 
 <script>
   // ── HOURS INDICATOR ──
-  // Business hours: Mon-Fri 8am-4pm CT, closed weekends
   (function() {
     const badge = document.getElementById('hoursBadge');
     if (!badge) return;
-    const now = new Date();
-    // Convert to Chicago time
-    const ct = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
-    const day = ct.getDay(); // 0=Sun, 6=Sat
-    const hour = ct.getHours();
-    const min = ct.getMinutes();
-    const totalMins = hour * 60 + min;
-    const isWeekday = day >= 1 && day <= 5;
-    const isOpen = isWeekday && totalMins >= 480 && totalMins < 960; // 8:00am–4:00pm
+    const ct = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+    const day = ct.getDay();
+    const totalMins = ct.getHours() * 60 + ct.getMinutes();
+    const isOpen = day >= 1 && day <= 5 && totalMins >= 480 && totalMins < 960;
     badge.className = 'hours-badge ' + (isOpen ? 'open-now' : 'closed-now');
     badge.innerHTML = '<span class="dot"></span>' + (isOpen ? 'Open Now' : 'Closed');
   })();
-
-  // ── HAMBURGER MENU ──
-  const hamburger = document.getElementById('hamburger');
-  const mobileMenu = document.getElementById('mobileMenu');
-  hamburger.addEventListener('click', () => {
-    const isOpen = hamburger.classList.toggle('open');
-    mobileMenu.classList.toggle('open', isOpen);
-  });
-  // Close menu when a link is clicked
-  mobileMenu.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', () => {
-      hamburger.classList.remove('open');
-      mobileMenu.classList.remove('open');
-    });
-  });
 
   // ── CALENDAR MOCK ──
   const times = ['8:00 AM','9:00 AM','10:00 AM','11:00 AM','1:00 PM','2:00 PM','3:00 PM'];
@@ -772,15 +705,10 @@
     const grid = document.getElementById('calGrid');
     document.getElementById('calMonth').textContent = months[curMonth] + ' ' + curYear;
     grid.innerHTML = '';
-    dayLabels.forEach(d => {
-      const el = document.createElement('div');
-      el.className = 'cal-day header'; el.textContent = d; grid.appendChild(el);
-    });
+    dayLabels.forEach(d => { const el = document.createElement('div'); el.className = 'cal-day header'; el.textContent = d; grid.appendChild(el); });
     const firstDay = new Date(curYear, curMonth, 1).getDay();
     const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
-    for (let i = 0; i < firstDay; i++) {
-      const el = document.createElement('div'); el.className = 'cal-day empty'; grid.appendChild(el);
-    }
+    for (let i = 0; i < firstDay; i++) { const el = document.createElement('div'); el.className = 'cal-day empty'; grid.appendChild(el); }
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     for (let d = 1; d <= daysInMonth; d++) {
       const el = document.createElement('div');
@@ -788,35 +716,23 @@
       const dow = date.getDay();
       const isPast = date < today;
       const isWeekend = dow === 0 || dow === 6;
-      if (isPast || isWeekend) {
-        el.className = 'cal-day unavailable'; el.textContent = d;
-      } else {
-        const isSelected = selected.day === d && selected.month === curMonth;
-        el.className = 'cal-day available' + (isSelected ? ' selected' : '');
+      if (isPast || isWeekend) { el.className = 'cal-day unavailable'; el.textContent = d; }
+      else {
+        el.className = 'cal-day available' + (selected.day === d && selected.month === curMonth ? ' selected' : '');
         if (date.getTime() === today.getTime()) el.classList.add('today');
-        el.textContent = d;
-        el.onclick = () => selectDay(d);
+        el.textContent = d; el.onclick = () => selectDay(d);
       }
       grid.appendChild(el);
     }
   }
-
   function selectDay(d) {
-    selected.day = d; selected.month = curMonth; selected.time = null;
-    buildCal();
+    selected.day = d; selected.month = curMonth; selected.time = null; buildCal();
     document.getElementById('calTimesSection').style.display = 'block';
-    const tc = document.getElementById('calTimes');
-    tc.innerHTML = '';
-    times.forEach(t => {
-      const el = document.createElement('div');
-      el.className = 'cal-time'; el.textContent = t;
-      el.onclick = () => selectTime(t, el);
-      tc.appendChild(el);
-    });
+    const tc = document.getElementById('calTimes'); tc.innerHTML = '';
+    times.forEach(t => { const el = document.createElement('div'); el.className = 'cal-time'; el.textContent = t; el.onclick = () => selectTime(t, el); tc.appendChild(el); });
     document.getElementById('calConfirm').style.display = 'none';
     document.getElementById('calNote').textContent = 'Now select a time below';
   }
-
   function selectTime(t, el) {
     selected.time = t;
     document.querySelectorAll('.cal-time').forEach(e => e.classList.remove('selected'));
@@ -824,17 +740,11 @@
     document.getElementById('calConfirm').style.display = 'block';
     document.getElementById('calNote').textContent = months[curMonth] + ' ' + selected.day + ' at ' + t + ' — click Confirm to book';
   }
-
   document.getElementById('calConfirm').addEventListener('click', function() {
-    this.textContent = '✓ Request Sent!';
-    this.style.background = '#2a6e2a'; this.style.color = '#fff';
+    this.textContent = '✓ Request Sent!'; this.style.background = '#2a6e2a'; this.style.color = '#fff';
     document.getElementById('calNote').textContent = 'We\'ll call or text to confirm your appointment.';
-    setTimeout(() => {
-      this.textContent = 'Confirm Appointment';
-      this.style.background = ''; this.style.color = '';
-    }, 4000);
+    setTimeout(() => { this.textContent = 'Confirm Appointment'; this.style.background = ''; this.style.color = ''; }, 4000);
   });
-
   buildCal();
 
   // ── NAV ACTIVE STATE ──
