@@ -3,1197 +3,692 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Collectors Vault 3D — Filament Subscription</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<title>All Auto & Truck — Expert Auto Repair</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --obsidian: #080b10;
-    --deep: #0d1117;
-    --surface: #111820;
-    --surface2: #161e28;
-    --border: rgba(255,255,255,0.07);
-    --border-bright: rgba(255,255,255,0.15);
-    --gold: #f0c040;
-    --gold-dim: #c49a20;
-    --gold-glow: rgba(240,192,64,0.15);
-    --cyan: #00e5ff;
-    --cyan-dim: rgba(0,229,255,0.12);
-    --red: #ff3d5a;
-    --text-primary: #f0ece4;
-    --text-secondary: #8a96a8;
-    --text-muted: #4a5568;
-    --font-display: 'Orbitron', monospace;
-    --font-heading: 'Rajdhani', sans-serif;
-    --font-body: 'DM Sans', sans-serif;
-  }
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  :root {
+    --black: #0e0e0e;
+    --dark: #161616;
+    --dark2: #1e1e1e;
+    --dark3: #272727;
+    --yellow: #f5c518;
+    --yellow-light: #ffd84d;
+    --yellow-dim: #b8920f;
+    --silver: #a8adb5;
+    --silver-light: #d4d8de;
+    --white: #f5f4f0;
+    --font-display: 'Barlow Condensed', sans-serif;
+    --font-body: 'Barlow', sans-serif;
+  }
+
   html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--obsidian);
-    color: var(--text-primary);
-    font-family: var(--font-body);
-    font-weight: 300;
-    line-height: 1.7;
-    overflow-x: hidden;
-    cursor: none;
-  }
-
-  /* Custom cursor */
-  .cursor {
-    width: 10px; height: 10px;
-    background: var(--gold);
-    border-radius: 50%;
-    position: fixed; top: 0; left: 0;
-    pointer-events: none;
-    z-index: 9999;
-    transition: transform 0.1s ease;
-    mix-blend-mode: difference;
-  }
-  .cursor-ring {
-    width: 32px; height: 32px;
-    border: 1px solid rgba(240,192,64,0.5);
-    border-radius: 50%;
-    position: fixed; top: 0; left: 0;
-    pointer-events: none;
-    z-index: 9998;
-    transition: transform 0.25s ease, width 0.2s, height 0.2s, opacity 0.2s;
-  }
-
-  /* Noise texture overlay */
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 1000;
-    opacity: 0.4;
-  }
+  body { background: var(--black); color: var(--white); font-family: var(--font-body); font-weight: 400; line-height: 1.6; overflow-x: hidden; }
 
   /* NAV */
   nav {
-    position: fixed; top: 0; left: 0; right: 0;
-    z-index: 500;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 1.2rem 3rem;
-    background: rgba(8,11,16,0.85);
-    backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--border);
+    padding: 0 3rem; height: 68px;
+    background: rgba(14,14,14,0.97);
+    border-bottom: 1px solid rgba(245,197,24,0.2);
+    backdrop-filter: blur(8px);
   }
   .nav-logo {
-    font-family: var(--font-display);
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    color: var(--gold);
-    text-decoration: none;
-    display: flex; align-items: center; gap: 10px;
+    font-family: var(--font-display); font-weight: 800; font-size: 1.5rem;
+    letter-spacing: 0.03em; color: var(--white); text-decoration: none; text-transform: uppercase;
   }
-  .nav-logo-icon {
-    width: 28px; height: 28px;
-    border: 1px solid var(--gold-dim);
-    border-radius: 4px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px;
-  }
-  .nav-links {
-    display: flex; gap: 2.5rem; list-style: none;
-  }
+  .nav-logo span { color: var(--yellow); }
+  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
   .nav-links a {
-    font-family: var(--font-heading);
-    font-size: 0.85rem;
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    color: var(--text-secondary);
-    text-decoration: none;
-    text-transform: uppercase;
-    transition: color 0.2s;
+    font-family: var(--font-display); font-size: 0.95rem; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--silver); text-decoration: none; transition: color 0.2s;
   }
-  .nav-links a:hover { color: var(--text-primary); }
+  .nav-links a:hover { color: var(--white); }
   .nav-cta {
-    font-family: var(--font-heading);
-    font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--obsidian);
-    background: var(--gold);
-    border: none;
-    padding: 0.6rem 1.4rem;
-    border-radius: 3px;
-    cursor: none;
-    transition: background 0.2s, transform 0.15s;
-    text-decoration: none;
+    background: var(--yellow) !important; color: var(--black) !important;
+    padding: 0.5rem 1.25rem; border-radius: 2px; transition: background 0.2s !important;
   }
-  .nav-cta:hover { background: #ffd060; transform: translateY(-1px); }
+  .nav-cta:hover { background: var(--yellow-light) !important; color: var(--black) !important; }
 
   /* HERO */
   .hero {
-    min-height: 100vh;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    position: relative;
-    padding: 8rem 2rem 6rem;
-    overflow: hidden;
+    min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+    padding: 6rem 3rem 4rem; position: relative; overflow: hidden;
   }
-
-  /* Hex grid background */
   .hero-bg {
     position: absolute; inset: 0;
-    background:
-      radial-gradient(ellipse 60% 50% at 50% 40%, rgba(240,192,64,0.06) 0%, transparent 70%),
-      radial-gradient(ellipse 40% 30% at 80% 60%, rgba(0,229,255,0.04) 0%, transparent 60%);
+    background: linear-gradient(to right, rgba(14,14,14,0.97) 45%, rgba(14,14,14,0.55) 100%),
+      url('https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=1600&q=80') center/cover no-repeat;
+    z-index: 0;
   }
-  .hex-grid {
-    position: absolute; inset: 0; opacity: 0.08;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px);
-    background-size: 48px 48px;
-    mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 80%);
+  .hero-content { position: relative; z-index: 1; max-width: 680px; }
+  .hero-tag {
+    font-family: var(--font-display); font-size: 0.8rem; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--yellow);
+    margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.6rem;
   }
+  .hero-tag::before { content: ''; display: inline-block; width: 28px; height: 2px; background: var(--yellow); }
+  .hero h1 {
+    font-family: var(--font-display); font-size: clamp(3.5rem, 7vw, 6rem); font-weight: 800;
+    line-height: 0.95; letter-spacing: -0.01em; text-transform: uppercase; color: var(--white); margin-bottom: 1.5rem;
+  }
+  .hero h1 .accent { color: var(--yellow); }
+  .hero p { font-size: 1.1rem; font-weight: 300; color: var(--silver-light); max-width: 520px; margin-bottom: 2.5rem; line-height: 1.7; }
+  .hero-actions { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
 
-  /* Floating orbs */
-  .orb {
-    position: absolute; border-radius: 50%;
-    filter: blur(60px); pointer-events: none;
-    animation: drift 8s ease-in-out infinite;
-  }
-  .orb-1 { width: 400px; height: 400px; background: rgba(240,192,64,0.06); top: 10%; left: -5%; animation-delay: 0s; }
-  .orb-2 { width: 300px; height: 300px; background: rgba(0,229,255,0.05); top: 30%; right: -5%; animation-delay: -3s; }
-  .orb-3 { width: 200px; height: 200px; background: rgba(255,61,90,0.04); bottom: 20%; left: 30%; animation-delay: -5s; }
-
-  @keyframes drift {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(20px, -20px) scale(1.05); }
-    66% { transform: translate(-15px, 15px) scale(0.95); }
-  }
-
-  .hero-eyebrow {
-    font-family: var(--font-heading);
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 1.5rem;
-    display: flex; align-items: center; gap: 12px;
-    animation: fadeUp 0.8s ease both;
-  }
-  .hero-eyebrow::before, .hero-eyebrow::after {
-    content: ''; display: block;
-    width: 32px; height: 1px;
-    background: var(--gold-dim);
-  }
-
-  .hero-title {
-    font-family: var(--font-display);
-    font-size: clamp(2.8rem, 6vw, 5.5rem);
-    font-weight: 900;
-    line-height: 0.95;
-    letter-spacing: -0.02em;
-    text-align: center;
-    margin-bottom: 0.5rem;
-    animation: fadeUp 0.8s 0.1s ease both;
-  }
-  .hero-title .line1 { display: block; color: var(--text-primary); }
-  .hero-title .line2 {
-    display: block;
-    background: linear-gradient(135deg, var(--gold) 0%, #fff8dc 50%, var(--gold) 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: shimmer 4s ease-in-out infinite;
-    background-size: 200%;
-  }
-  @keyframes shimmer {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-  }
-
-  .hero-subtitle {
-    font-size: 1.1rem;
-    font-weight: 300;
-    color: var(--text-secondary);
-    text-align: center;
-    max-width: 560px;
-    margin: 1.8rem auto 0;
-    line-height: 1.7;
-    animation: fadeUp 0.8s 0.2s ease both;
-  }
-
-  .hero-cta-group {
-    display: flex; gap: 1rem; align-items: center; justify-content: center;
-    margin-top: 3rem;
-    animation: fadeUp 0.8s 0.3s ease both;
-  }
   .btn-primary {
-    font-family: var(--font-heading);
-    font-size: 0.9rem;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--obsidian);
-    background: var(--gold);
-    border: none;
-    padding: 1rem 2.5rem;
-    border-radius: 3px;
-    cursor: none;
-    text-decoration: none;
-    display: inline-block;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 0 30px rgba(240,192,64,0.25);
+    font-family: var(--font-display); font-size: 1rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--black); background: var(--yellow);
+    border: none; padding: 0.85rem 2rem; border-radius: 2px;
+    cursor: pointer; text-decoration: none; display: inline-block;
+    transition: background 0.2s, transform 0.15s;
   }
-  .btn-primary::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.25) 50%, transparent 60%);
-    transform: translateX(-100%);
-    transition: transform 0.4s ease;
-  }
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 50px rgba(240,192,64,0.4); }
-  .btn-primary:hover::after { transform: translateX(100%); }
+  .btn-primary:hover { background: var(--yellow-light); transform: translateY(-1px); }
 
-  .btn-ghost {
-    font-family: var(--font-heading);
-    font-size: 0.85rem;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-secondary);
-    background: transparent;
-    border: 1px solid var(--border-bright);
-    padding: 1rem 2rem;
-    border-radius: 3px;
-    cursor: none;
-    text-decoration: none;
-    transition: color 0.2s, border-color 0.2s;
+  .btn-outline {
+    font-family: var(--font-display); font-size: 1rem; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--silver-light); background: transparent;
+    border: 1px solid rgba(168,173,181,0.35); padding: 0.85rem 2rem; border-radius: 2px;
+    cursor: pointer; text-decoration: none; display: inline-block; transition: border-color 0.2s, color 0.2s;
   }
-  .btn-ghost:hover { color: var(--text-primary); border-color: rgba(255,255,255,0.35); }
+  .btn-outline:hover { border-color: var(--silver-light); color: var(--white); }
 
   .hero-stats {
-    display: flex; gap: 3rem; justify-content: center; align-items: center;
-    margin-top: 4rem;
-    animation: fadeUp 0.8s 0.4s ease both;
-    padding-top: 3rem;
-    border-top: 1px solid var(--border);
+    position: relative; z-index: 1; display: flex; gap: 3rem;
+    margin-top: 4rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.08);
   }
-  .stat { text-align: center; }
-  .stat-num {
-    font-family: var(--font-display);
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--gold);
-    line-height: 1;
-  }
-  .stat-label {
-    font-size: 0.72rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-top: 4px;
-    font-family: var(--font-heading);
-  }
-  .stat-divider { width: 1px; height: 36px; background: var(--border); }
+  .stat-num { font-family: var(--font-display); font-size: 2.4rem; font-weight: 800; color: var(--white); line-height: 1; }
+  .stat-num span { color: var(--yellow); }
+  .stat-label { font-size: 0.78rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--silver); margin-top: 0.25rem; }
 
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(24px); }
-    to { opacity: 1; transform: translateY(0); }
+  /* MARQUEE */
+  .marquee-strip {
+    background: var(--yellow); padding: 0.65rem 0; overflow: hidden; white-space: nowrap;
   }
+  .marquee-track { display: inline-block; animation: marquee 22s linear infinite; }
+  .marquee-track span {
+    font-family: var(--font-display); font-size: 0.82rem; font-weight: 800;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--black); margin: 0 2.5rem;
+  }
+  .marquee-track span::before { content: '◆ '; opacity: 0.4; }
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-  /* SECTION common */
-  section { padding: 7rem 2rem; position: relative; }
-  .container { max-width: 1100px; margin: 0 auto; }
+  /* SECTION HELPERS */
+  section { padding: 5rem 3rem; }
   .section-label {
-    font-family: var(--font-heading);
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 1rem;
+    font-family: var(--font-display); font-size: 0.78rem; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--yellow);
+    margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.6rem;
   }
+  .section-label::before { content: ''; display: inline-block; width: 20px; height: 2px; background: var(--yellow); }
   .section-title {
-    font-family: var(--font-display);
-    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
-    font-weight: 700;
-    line-height: 1.1;
-    color: var(--text-primary);
-    margin-bottom: 1.2rem;
+    font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.2rem); font-weight: 800;
+    line-height: 1; text-transform: uppercase; color: var(--white); margin-bottom: 1rem;
   }
-  .section-body {
-    font-size: 1rem;
-    color: var(--text-secondary);
-    max-width: 520px;
-    line-height: 1.75;
-  }
+  .section-sub { font-size: 1rem; font-weight: 300; color: var(--silver); max-width: 500px; line-height: 1.7; }
 
-  /* WHAT'S IN THE BOX */
-  .box-section { background: var(--deep); }
-  .box-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2px;
-    margin-top: 3.5rem;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
+  /* SERVICES */
+  #services { background: var(--dark); }
+  .services-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3rem; gap: 2rem; flex-wrap: wrap; }
+  .services-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5px; background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.04);
   }
-  .box-item {
-    background: var(--surface);
-    padding: 2.2rem;
-    position: relative;
-    overflow: hidden;
-    transition: background 0.3s;
+  .service-card {
+    background: var(--dark); padding: 2rem; position: relative; overflow: hidden; cursor: default; transition: background 0.25s;
   }
-  .box-item:hover { background: var(--surface2); }
-  .box-item::before {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
-    opacity: 0;
-    transition: opacity 0.3s;
+  .service-card:hover { background: var(--dark2); }
+  .service-card::after {
+    content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px;
+    background: var(--yellow); transition: width 0.3s ease;
   }
-  .box-item:hover::before { opacity: 1; }
-  .box-item-num {
-    font-family: var(--font-display);
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    color: var(--text-muted);
-    margin-bottom: 1rem;
+  .service-card:hover::after { width: 100%; }
+  .service-icon {
+    width: 44px; height: 44px; background: rgba(245,197,24,0.08); border: 1px solid rgba(245,197,24,0.2);
+    border-radius: 2px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;
   }
-  .box-item-icon {
-    font-size: 2rem; margin-bottom: 1rem; display: block;
+  .service-icon svg { width: 22px; height: 22px; stroke: var(--yellow); fill: none; stroke-width: 1.8; }
+  .service-card h3 {
+    font-family: var(--font-display); font-size: 1.15rem; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase; color: var(--white); margin-bottom: 0.5rem;
   }
-  .box-item-title {
-    font-family: var(--font-heading);
-    font-size: 1.3rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
-    letter-spacing: 0.02em;
-  }
-  .box-item-desc {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    line-height: 1.65;
-  }
-  .box-item.featured {
-    background: linear-gradient(135deg, #0d1a0f 0%, #0a1510 100%);
-    border-left: 2px solid rgba(0,229,255,0.3);
-  }
-  .box-item.featured .box-item-title { color: var(--cyan); }
+  .service-card p { font-size: 0.9rem; color: var(--silver); line-height: 1.6; }
 
-  /* TIERS */
-  .tiers-section { background: var(--obsidian); }
-  .tiers-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-    margin-top: 3.5rem;
+  /* ABOUT */
+  #about { background: var(--black); display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
+  .about-img-wrap { position: relative; }
+  .about-img-wrap img { width: 100%; height: 480px; object-fit: cover; display: block; filter: grayscale(15%); }
+  .about-badge {
+    position: absolute; bottom: -1.5rem; right: -1.5rem;
+    background: var(--yellow); padding: 1.25rem 1.5rem; text-align: center;
   }
-  .tier-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 2.5rem 2rem;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.3s, border-color 0.3s;
+  .about-badge .num { font-family: var(--font-display); font-size: 2.5rem; font-weight: 800; color: var(--black); line-height: 1; }
+  .about-badge .lbl { font-family: var(--font-display); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(14,14,14,0.7); }
+  .about-text { padding-right: 1rem; }
+  .about-features { margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem; }
+  .about-feat { display: flex; align-items: flex-start; gap: 1rem; }
+  .about-feat-icon {
+    width: 36px; height: 36px; background: rgba(245,197,24,0.08); border: 1px solid rgba(245,197,24,0.2);
+    border-radius: 2px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;
   }
-  .tier-card:hover { transform: translateY(-4px); }
-  .tier-card.featured {
-    border-color: var(--gold-dim);
-    background: linear-gradient(160deg, #1a1500 0%, #0d1117 60%);
+  .about-feat-icon svg { width: 18px; height: 18px; stroke: var(--yellow); fill: none; stroke-width: 1.8; }
+  .about-feat h4 {
+    font-family: var(--font-display); font-size: 0.95rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--white); margin-bottom: 0.15rem;
   }
-  .tier-card.featured::after {
-    content: 'MOST POPULAR';
-    position: absolute; top: 16px; right: -28px;
-    background: var(--gold);
-    color: var(--obsidian);
-    font-family: var(--font-heading);
-    font-size: 0.6rem;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    padding: 4px 40px;
-    transform: rotate(45deg);
+  .about-feat p { font-size: 0.88rem; color: var(--silver); }
+
+  /* BOOKING */
+  #booking { background: var(--dark); display: grid; grid-template-columns: 1fr 1.5fr; gap: 5rem; align-items: start; }
+  .booking-info h2 { margin-bottom: 1rem; }
+  .booking-info .section-sub { margin-bottom: 2rem; }
+  .booking-contact { display: flex; flex-direction: column; gap: 1rem; margin-top: 2rem; }
+  .contact-item {
+    display: flex; align-items: center; gap: 1rem; padding: 1rem;
+    background: var(--dark2); border: 1px solid rgba(255,255,255,0.06); border-radius: 2px;
   }
-  .tier-glow {
-    position: absolute; top: -60px; right: -60px;
-    width: 200px; height: 200px;
-    background: radial-gradient(circle, rgba(240,192,64,0.08) 0%, transparent 70%);
-    pointer-events: none;
+  .contact-item svg { width: 20px; height: 20px; stroke: var(--yellow); fill: none; stroke-width: 1.8; flex-shrink: 0; }
+  .contact-item strong {
+    font-family: var(--font-display); font-size: 0.78rem; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--silver); display: block; margin-bottom: 0.15rem;
   }
-  .tier-name {
-    font-family: var(--font-display);
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    margin-bottom: 0.8rem;
+  .contact-item span { font-size: 0.95rem; color: var(--white); }
+
+  /* CAL EMBED WRAPPER */
+  .cal-wrapper {
+    background: var(--dark2); border: 1px solid rgba(245,197,24,0.15);
+    border-radius: 2px; overflow: hidden; position: relative;
   }
-  .tier-card.featured .tier-name { color: var(--gold-dim); }
-  .tier-price {
-    font-family: var(--font-display);
-    font-size: 3rem;
-    font-weight: 900;
-    color: var(--text-primary);
-    line-height: 1;
-    margin-bottom: 0.3rem;
+  .cal-header {
+    background: var(--dark3); padding: 1.25rem 1.75rem;
+    border-bottom: 1px solid rgba(245,197,24,0.12);
+    display: flex; align-items: center; justify-content: space-between;
   }
-  .tier-price sup { font-size: 1.2rem; vertical-align: top; margin-top: 0.6rem; display: inline-block; color: var(--text-secondary); }
-  .tier-period {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    margin-bottom: 2rem;
-    font-family: var(--font-heading);
-    letter-spacing: 0.08em;
+  .cal-header h3 {
+    font-family: var(--font-display); font-size: 1.1rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em; color: var(--white);
   }
-  .tier-divider { border: none; border-top: 1px solid var(--border); margin-bottom: 1.8rem; }
-  .tier-features { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; }
-  .tier-features li {
-    display: flex; align-items: flex-start; gap: 10px;
-    font-size: 0.88rem;
-    color: var(--text-secondary);
-    line-height: 1.4;
+  .cal-badge {
+    font-family: var(--font-display); font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    background: rgba(245,197,24,0.12); color: var(--yellow);
+    border: 1px solid rgba(245,197,24,0.25); padding: 0.25rem 0.6rem; border-radius: 2px;
   }
-  .tier-features li::before {
-    content: '▸';
-    color: var(--gold-dim);
-    flex-shrink: 0;
-    margin-top: 1px;
-    font-size: 0.7rem;
+  .cal-embed-area {
+    width: 100%; min-height: 560px; border: none; display: block;
+    background: var(--dark2);
   }
-  .tier-features li.highlight { color: var(--text-primary); font-weight: 400; }
-  .tier-btn {
-    display: block;
-    margin-top: 2.5rem;
+  .cal-placeholder {
+    min-height: 560px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 1rem; padding: 3rem;
     text-align: center;
-    font-family: var(--font-heading);
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    padding: 0.9rem;
-    border-radius: 3px;
-    text-decoration: none;
-    transition: all 0.2s;
-    cursor: none;
   }
-  .tier-btn-outline {
-    color: var(--text-secondary);
-    border: 1px solid var(--border-bright);
-  }
-  .tier-btn-outline:hover { color: var(--text-primary); border-color: rgba(255,255,255,0.35); }
-  .tier-btn-gold {
-    color: var(--obsidian);
-    background: var(--gold);
-    box-shadow: 0 0 24px rgba(240,192,64,0.2);
-  }
-  .tier-btn-gold:hover { background: #ffd060; box-shadow: 0 0 40px rgba(240,192,64,0.35); }
-
-  /* HOW IT WORKS */
-  .how-section { background: var(--deep); }
-  .how-steps {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0;
-    margin-top: 3.5rem;
-    position: relative;
-  }
-  .how-steps::before {
-    content: '';
-    position: absolute;
-    top: 28px; left: 12.5%; right: 12.5%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--border-bright), var(--gold-dim), var(--border-bright), transparent);
-  }
-  .how-step { padding: 0 1.5rem; text-align: center; }
-  .how-step-num {
-    width: 56px; height: 56px;
-    border: 1px solid var(--border-bright);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 1.5rem;
-    font-family: var(--font-display);
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--gold);
-    background: var(--obsidian);
-    position: relative;
-    z-index: 1;
-    transition: border-color 0.3s, box-shadow 0.3s;
-  }
-  .how-step:hover .how-step-num {
-    border-color: var(--gold);
-    box-shadow: 0 0 20px rgba(240,192,64,0.2);
-  }
-  .how-step-title {
-    font-family: var(--font-heading);
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
-    letter-spacing: 0.02em;
-  }
-  .how-step-desc { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; }
-
-  /* NICHE / EDGE SECTION */
-  .edge-section {
-    background: var(--obsidian);
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-  }
-  .edge-inner {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6rem;
-    align-items: center;
-  }
-  .edge-visual {
-    position: relative;
-    height: 360px;
+  .cal-placeholder-icon {
+    width: 64px; height: 64px; background: rgba(245,197,24,0.1);
+    border: 1px solid rgba(245,197,24,0.25); border-radius: 2px;
     display: flex; align-items: center; justify-content: center;
   }
-  .spool-stack {
-    position: relative; width: 260px; height: 260px;
+  .cal-placeholder-icon svg { width: 32px; height: 32px; stroke: var(--yellow); fill: none; stroke-width: 1.5; }
+  .cal-placeholder h4 {
+    font-family: var(--font-display); font-size: 1.2rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em; color: var(--white); margin-bottom: 0.25rem;
   }
-  .spool {
-    position: absolute;
-    border-radius: 50%;
-    border: 2px solid;
-    display: flex; align-items: center; justify-content: center;
+  .cal-placeholder p { font-size: 0.9rem; color: var(--silver); max-width: 320px; line-height: 1.6; }
+  .cal-mock {
+    width: 100%; padding: 1.5rem 1.75rem; display: flex; flex-direction: column; gap: 1.25rem;
   }
-  .spool-1 {
-    width: 240px; height: 240px;
-    border-color: var(--gold-dim);
-    top: 10px; left: 10px;
-    background: radial-gradient(circle at 35% 35%, #1a1500 0%, #050800 70%);
-    animation: rotateSlow 20s linear infinite;
+  .cal-mock-month {
+    font-family: var(--font-display); font-size: 0.8rem; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--silver);
+    text-align: center; margin-bottom: 0.5rem;
   }
-  .spool-2 {
-    width: 160px; height: 160px;
-    border-color: rgba(0,229,255,0.3);
-    top: 50px; left: 50px;
-    background: radial-gradient(circle at 35% 35%, #001a1a 0%, #050808 70%);
-    animation: rotateSlow 15s linear infinite reverse;
+  .cal-mock-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 1rem;
   }
-  .spool-3 {
-    width: 80px; height: 80px;
-    border-color: rgba(255,61,90,0.3);
-    top: 90px; left: 90px;
-    background: radial-gradient(circle at 35% 35%, #1a0005 0%, #080005 70%);
+  .cal-day {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-size: 0.85rem; font-weight: 600; border-radius: 2px;
+    cursor: pointer; transition: background 0.15s;
   }
-  .spool-center {
-    position: absolute;
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    background: var(--gold);
-    top: 112px; left: 112px;
-    box-shadow: 0 0 30px rgba(240,192,64,0.5);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px;
+  .cal-day.header { color: var(--silver); font-size: 0.72rem; cursor: default; }
+  .cal-day.empty { opacity: 0; pointer-events: none; }
+  .cal-day.unavailable { color: var(--dark3); cursor: default; }
+  .cal-day.available { color: var(--silver-light); background: rgba(255,255,255,0.04); }
+  .cal-day.available:hover { background: rgba(245,197,24,0.15); color: var(--yellow); }
+  .cal-day.selected { background: var(--yellow); color: var(--black); }
+  .cal-day.today { border: 1px solid rgba(245,197,24,0.4); color: var(--yellow); }
+  .cal-times {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
   }
-  @keyframes rotateSlow {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+  .cal-time {
+    font-family: var(--font-display); font-size: 0.85rem; font-weight: 600;
+    text-align: center; padding: 0.55rem 0.5rem; border-radius: 2px; cursor: pointer;
+    background: rgba(255,255,255,0.04); color: var(--silver-light); border: 1px solid rgba(255,255,255,0.07);
+    transition: all 0.15s;
   }
-  .edge-tags {
-    position: absolute;
-    display: flex; flex-direction: column; gap: 8px;
-    right: -20px; top: 50%;
-    transform: translateY(-50%);
+  .cal-time:hover { background: rgba(245,197,24,0.12); border-color: rgba(245,197,24,0.3); color: var(--yellow); }
+  .cal-time.selected { background: var(--yellow); color: var(--black); border-color: var(--yellow); }
+  .cal-confirm {
+    width: 100%; padding: 0.9rem; font-family: var(--font-display); font-size: 1rem;
+    font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--black); background: var(--yellow); border: none; border-radius: 2px; cursor: pointer;
+    transition: background 0.2s; margin-top: 0.5rem;
   }
-  .edge-tag {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 6px 14px;
-    font-size: 0.72rem;
-    font-family: var(--font-heading);
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    animation: tagFloat 3s ease-in-out infinite;
+  .cal-confirm:hover { background: var(--yellow-light); }
+  .cal-note { font-size: 0.78rem; color: var(--silver); text-align: center; }
+  .cal-powered {
+    padding: 0.75rem 1.75rem; border-top: 1px solid rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
   }
-  .edge-tag:nth-child(1) { color: var(--gold); border-color: var(--gold-dim); animation-delay: 0s; }
-  .edge-tag:nth-child(2) { color: var(--cyan); border-color: rgba(0,229,255,0.3); animation-delay: -1s; }
-  .edge-tag:nth-child(3) { color: #c084fc; border-color: rgba(192,132,252,0.3); animation-delay: -2s; }
-  @keyframes tagFloat {
-    0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(6px); }
-  }
+  .cal-powered span { font-size: 0.75rem; color: var(--silver); }
+  .cal-powered strong { font-size: 0.75rem; color: var(--silver-light); }
 
-  /* COLORWAY reveal */
-  .colorway-strip {
-    display: flex; gap: 4px; margin-top: 2rem;
-    align-items: flex-end;
+  /* REVIEWS */
+  #reviews { background: var(--black); }
+  .reviews-header { margin-bottom: 3rem; }
+  .reviews-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+  .review-card {
+    background: var(--dark); border: 1px solid rgba(255,255,255,0.06);
+    padding: 1.75rem; border-radius: 2px;
   }
-  .cw {
-    height: 48px; border-radius: 3px; flex: 1;
-    position: relative; overflow: hidden;
-    transition: flex 0.4s ease, height 0.4s ease;
-    cursor: none;
+  .stars { display: flex; gap: 3px; margin-bottom: 1rem; }
+  .star {
+    width: 14px; height: 14px; background: var(--yellow);
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
   }
-  .cw:hover { flex: 3; height: 64px; }
-  .cw-label {
-    position: absolute; bottom: 6px; left: 8px;
-    font-family: var(--font-heading);
-    font-size: 0.6rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    opacity: 0;
-    transition: opacity 0.3s;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
-  }
-  .cw:hover .cw-label { opacity: 1; }
-
-  /* TESTIMONIALS */
-  .testimonials-section { background: var(--deep); }
-  .testimonials-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-    margin-top: 3rem;
-  }
-  .testimonial {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 2rem;
-    position: relative;
-  }
-  .testimonial::before {
-    content: '"';
-    position: absolute; top: 1rem; right: 1.5rem;
-    font-family: Georgia, serif;
-    font-size: 5rem;
-    color: var(--border-bright);
-    line-height: 1;
-  }
-  .testimonial-text {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    line-height: 1.7;
-    margin-bottom: 1.5rem;
-  }
-  .testimonial-author {
-    display: flex; align-items: center; gap: 10px;
-  }
-  .author-avatar {
-    width: 36px; height: 36px;
-    border-radius: 50%;
+  .review-text { font-size: 0.92rem; color: var(--silver-light); line-height: 1.7; margin-bottom: 1.25rem; font-style: italic; }
+  .review-text::before { content: '"'; color: var(--yellow); font-size: 1.5rem; line-height: 0; vertical-align: -0.3em; margin-right: 0.1rem; }
+  .reviewer { display: flex; align-items: center; gap: 0.75rem; }
+  .reviewer-avatar {
+    width: 36px; height: 36px; border-radius: 50%; background: var(--yellow-dim);
     display: flex; align-items: center; justify-content: center;
-    font-family: var(--font-display);
-    font-size: 0.65rem;
-    font-weight: 700;
-    flex-shrink: 0;
+    font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; color: var(--white); flex-shrink: 0;
   }
-  .author-name {
-    font-family: var(--font-heading);
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-primary);
-  }
-  .author-handle { font-size: 0.75rem; color: var(--text-muted); }
-  .stars { color: var(--gold); font-size: 0.7rem; letter-spacing: 2px; margin-bottom: 0.8rem; }
-
-  /* CTA FINAL */
-  .final-cta {
-    background: var(--obsidian);
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-  .final-cta::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(240,192,64,0.07) 0%, transparent 70%);
-  }
-  .final-cta .section-title { font-size: clamp(2rem, 4vw, 3.5rem); }
-  .founding-badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: rgba(240,192,64,0.08);
-    border: 1px solid var(--gold-dim);
-    border-radius: 2px;
-    padding: 8px 20px;
-    font-family: var(--font-heading);
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 2.5rem;
-  }
-  .founding-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--gold);
-    animation: pulse 1.5s ease-in-out infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.7); }
-  }
+  .reviewer-name { font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--white); }
+  .reviewer-vehicle { font-size: 0.78rem; color: var(--silver); }
 
   /* FOOTER */
-  footer {
-    background: var(--obsidian);
-    border-top: 1px solid var(--border);
-    padding: 2.5rem 3rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  footer { background: var(--dark); border-top: 1px solid rgba(245,197,24,0.1); padding: 3rem 3rem 2rem; }
+  .footer-top { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 3rem; margin-bottom: 2.5rem; }
+  .footer-brand .nav-logo { display: block; margin-bottom: 1rem; font-size: 1.4rem; }
+  .footer-brand p { font-size: 0.88rem; color: var(--silver); line-height: 1.7; max-width: 280px; }
+  .footer-col h4 {
+    font-family: var(--font-display); font-size: 0.8rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--silver); margin-bottom: 1rem;
   }
-  .footer-logo {
-    font-family: var(--font-display);
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    color: var(--text-muted);
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+  .footer-col ul li a { font-size: 0.9rem; color: var(--silver); text-decoration: none; transition: color 0.2s; }
+  .footer-col ul li a:hover { color: var(--yellow); }
+  .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.07); padding-top: 1.5rem;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
   }
-  .footer-links {
-    display: flex; gap: 2rem; list-style: none;
-  }
-  .footer-links a {
-    font-family: var(--font-heading);
-    font-size: 0.78rem;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  .footer-links a:hover { color: var(--text-secondary); }
-  .footer-copy {
-    font-size: 0.72rem;
-    color: var(--text-muted);
-    font-family: var(--font-heading);
-    letter-spacing: 0.05em;
-  }
+  .footer-bottom p { font-size: 0.82rem; color: var(--silver); }
 
-  /* Scroll reveal */
-  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
-  .reveal.visible { opacity: 1; transform: translateY(0); }
-  .reveal-delay-1 { transition-delay: 0.1s; }
-  .reveal-delay-2 { transition-delay: 0.2s; }
-  .reveal-delay-3 { transition-delay: 0.3s; }
-  .reveal-delay-4 { transition-delay: 0.4s; }
-
-  /* Holographic card shimmer */
-  .holo-card {
-    position: relative;
-    overflow: hidden;
-  }
-  .holo-card::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(135deg,
-      transparent 20%,
-      rgba(255,255,255,0.02) 40%,
-      rgba(240,192,64,0.05) 50%,
-      rgba(0,229,255,0.03) 60%,
-      transparent 80%);
-    transform: translateX(-100%) rotate(0deg);
-    transition: transform 0.6s ease;
-    pointer-events: none;
-  }
-  .holo-card:hover::after { transform: translateX(100%); }
-
-  @media (max-width: 768px) {
-    nav { padding: 1rem 1.5rem; }
+  /* MOBILE */
+  @media (max-width: 900px) {
+    nav { padding: 0 1.5rem; }
     .nav-links { display: none; }
-    .box-grid { grid-template-columns: 1fr; }
-    .tiers-grid { grid-template-columns: 1fr; }
-    .how-steps { grid-template-columns: 1fr 1fr; gap: 2rem; }
-    .how-steps::before { display: none; }
-    .edge-inner { grid-template-columns: 1fr; gap: 3rem; }
-    .testimonials-grid { grid-template-columns: 1fr; }
+    section { padding: 3.5rem 1.5rem; }
+    #about { grid-template-columns: 1fr; gap: 2rem; }
+    .about-badge { right: 0; bottom: -1rem; }
+    #booking { grid-template-columns: 1fr; gap: 2.5rem; }
+    .hero { padding: 5rem 1.5rem 3rem; }
     .hero-stats { gap: 1.5rem; flex-wrap: wrap; }
-    footer { flex-direction: column; gap: 1.5rem; text-align: center; }
-    .footer-links { flex-wrap: wrap; justify-content: center; }
-    body { cursor: auto; }
+    .footer-top { grid-template-columns: 1fr; gap: 2rem; }
+    .footer-bottom { flex-direction: column; text-align: center; }
   }
 </style>
 </head>
 <body>
 
-<div class="cursor" id="cursor"></div>
-<div class="cursor-ring" id="cursorRing"></div>
-
 <!-- NAV -->
 <nav>
-  <a href="#" class="nav-logo">
-    <div class="nav-logo-icon">⬡</div>
-    THE COLLECTORS VAULT 3D
-  </a>
+  <a href="#" class="nav-logo">All <span>&</span> Auto Truck</a>
   <ul class="nav-links">
-    <li><a href="#whats-inside">What's Inside</a></li>
-    <li><a href="#tiers">Tiers</a></li>
-    <li><a href="#how">How It Works</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#reviews">Reviews</a></li>
+    <li><a href="#booking" class="nav-cta">Book Appointment</a></li>
   </ul>
-  <a href="#tiers" class="nav-cta">Join the Vault</a>
 </nav>
 
 <!-- HERO -->
-<section class="hero">
+<section class="hero" id="home">
   <div class="hero-bg"></div>
-  <div class="hex-grid"></div>
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-
-  <div class="hero-eyebrow">Monthly Filament Drops</div>
-
-  <h1 class="hero-title">
-    <span class="line1">RARE PULLS.</span>
-    <span class="line2">EVERY MONTH.</span>
-  </h1>
-
-  <p class="hero-subtitle">
-    Curated filament drops with gaming-season colorways, exclusive 3D printed collectibles, and Pokémon-inspired palettes — delivered to your door monthly. Built for collectors who actually print.
-  </p>
-
-  <div class="hero-cta-group">
-    <a href="#tiers" class="btn-primary">Open Your First Box</a>
-    <a href="#whats-inside" class="btn-ghost">See What's Inside</a>
+  <div class="hero-content">
+    <p class="hero-tag">Trusted Auto & Truck Repair — Addison, IL</p>
+    <h1>Built for the<br><span class="accent">Road Ahead.</span></h1>
+    <p>From Gramma's grocery getter to hot rods — a wide range of automotive repairs for cars, trucks, and everything in between.</p>
+    <div class="hero-actions">
+      <a href="#booking" class="btn-primary">Schedule Service</a>
+      <a href="#services" class="btn-outline">View Services</a>
+    </div>
   </div>
-
   <div class="hero-stats">
-    <div class="stat">
-      <div class="stat-num">12+</div>
-      <div class="stat-label">New Colorways / Year</div>
+    <div>
+      <div class="stat-num">20<span>+</span></div>
+      <div class="stat-label">Years in Business</div>
     </div>
-    <div class="stat-divider"></div>
-    <div class="stat">
-      <div class="stat-num">0%</div>
-      <div class="stat-label">Color Repeats Guaranteed</div>
+    <div>
+      <div class="stat-num">5K<span>+</span></div>
+      <div class="stat-label">Vehicles Serviced</div>
     </div>
-    <div class="stat-divider"></div>
-    <div class="stat">
-      <div class="stat-num">$0</div>
-      <div class="stat-label">Shipping, Always</div>
-    </div>
-    <div class="stat-divider"></div>
-    <div class="stat">
-      <div class="stat-num">3D</div>
-      <div class="stat-label">Exclusive Print Each Box</div>
+    <div>
+      <div class="stat-num">4.9<span>★</span></div>
+      <div class="stat-label">Customer Rating</div>
     </div>
   </div>
 </section>
 
-<!-- WHAT'S IN THE BOX -->
-<section class="box-section" id="whats-inside">
-  <div class="container">
-    <div class="section-label reveal">What's in the vault</div>
-    <h2 class="section-title reveal reveal-delay-1">Every box is a<br>rare drop.</h2>
-    <p class="section-body reveal reveal-delay-2">No filler. No repeats. Each shipment is themed around a gaming season, Pokémon set release, or collector palette — hand-curated by a maker who actually prints.</p>
+<!-- MARQUEE -->
+<div class="marquee-strip">
+  <div class="marquee-track">
+    <span>Oil Change</span><span>Brake Repair</span><span>Engine Diagnostics</span><span>Transmission Service</span><span>Tire Rotation</span><span>AC Repair</span><span>Suspension</span><span>Fleet Service</span><span>Hot Rods Welcome</span><span>Light Duty Trucks</span>
+    <span>Oil Change</span><span>Brake Repair</span><span>Engine Diagnostics</span><span>Transmission Service</span><span>Tire Rotation</span><span>AC Repair</span><span>Suspension</span><span>Fleet Service</span><span>Hot Rods Welcome</span><span>Light Duty Trucks</span>
+  </div>
+</div>
 
-    <div class="box-grid reveal reveal-delay-2">
-      <div class="box-item holo-card">
-        <div class="box-item-num">01</div>
-        <span class="box-item-icon">🎨</span>
-        <div class="box-item-title">Themed Filament Spools</div>
-        <div class="box-item-desc">1–3 premium 1kg spools per tier, curated around gaming seasons, Pokémon set releases, and collector palettes. Brands like Polymaker, eSUN, and Bambu Lab.</div>
-      </div>
-      <div class="box-item featured holo-card">
-        <div class="box-item-num">02</div>
-        <span class="box-item-icon">⬡</span>
-        <div class="box-item-title">Exclusive 3D Print</div>
-        <div class="box-item-desc">A small printed collectible made fresh from The Collectors Vault 3D — Pokémon-adjacent figures, card stands, seasonal pieces. Subscriber-only. Never sold separately.</div>
-      </div>
-      <div class="box-item holo-card">
-        <div class="box-item-num">03</div>
-        <span class="box-item-icon">📋</span>
-        <div class="box-item-title">Spool Profile Card</div>
-        <div class="box-item-desc">Each filament comes with a profile card — optimal temps, speeds, and recommended print types. Skip the guesswork entirely.</div>
-      </div>
-      <div class="box-item holo-card">
-        <div class="box-item-num">04</div>
-        <span class="box-item-icon">🎁</span>
-        <div class="box-item-title">Vault Member Perks</div>
-        <div class="box-item-desc">Subscriber-only discount codes for The Collectors Vault 3D eBay store, early access to new colorway drops, and entry into monthly print contests.</div>
-      </div>
+<!-- SERVICES -->
+<section id="services">
+  <div class="services-header">
+    <div>
+      <p class="section-label">What We Do</p>
+      <h2 class="section-title">Complete Auto<br>& Truck Service</h2>
     </div>
-
-    <!-- Colorway strip -->
-    <div class="reveal reveal-delay-3" style="margin-top:3rem">
-      <div class="section-label" style="margin-bottom:0.5rem">Sample colorways</div>
-      <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem;font-family:var(--font-heading);letter-spacing:0.05em">Hover to reveal — actual colors vary each month</p>
-      <div class="colorway-strip">
-        <div class="cw" style="background:linear-gradient(180deg,#e53935,#b71c1c)"><span class="cw-label" style="color:#fff">Scarlet Season</span></div>
-        <div class="cw" style="background:linear-gradient(180deg,#1a237e,#0d47a1)"><span class="cw-label" style="color:#90caf9">Deep Violet</span></div>
-        <div class="cw" style="background:linear-gradient(180deg,#f9a825,#f57f17)"><span class="cw-label" style="color:#1a1000">Shiny Gold</span></div>
-        <div class="cw" style="background:linear-gradient(180deg,#00838f,#006064)"><span class="cw-label" style="color:#b2ebf2">Aqua Vault</span></div>
-        <div class="cw" style="background:linear-gradient(180deg,#424242,#212121)"><span class="cw-label" style="color:#bdbdbd">Shadow Black</span></div>
-        <div class="cw" style="background:linear-gradient(180deg,#6a1b9a,#4a148c)"><span class="cw-label" style="color:#e1bee7">Ghost Type</span></div>
-        <div class="cw" style="background:linear-gradient(180deg,#1b5e20,#2e7d32)"><span class="cw-label" style="color:#a5d6a7">Forest Token</span></div>
-        <div class="cw" style="background:linear-gradient(180deg,#bf360c,#8d6e63)"><span class="cw-label" style="color:#fff">Copper Rare</span></div>
-        <div class="cw" style="background:linear-gradient(180deg,#e8eaf6,#c5cae9)"><span class="cw-label" style="color:#283593">Crystal Pack</span></div>
-        <div class="cw" style="background:linear-gradient(180deg,#e91e63,#880e4f)"><span class="cw-label" style="color:#fce4ec">Pokémon Pink</span></div>
-      </div>
+    <p class="section-sub">From routine oil changes to complex engine work — we handle it all with the same attention to detail.</p>
+  </div>
+  <div class="services-grid">
+    <div class="service-card">
+      <div class="service-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></div>
+      <h3>Engine Diagnostics</h3>
+      <p>State-of-the-art computer diagnostics to quickly identify issues and get your vehicle running right.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+      <h3>Oil Change & Lube</h3>
+      <p>Full-service oil changes with filter replacement and fluid top-offs. Quick, clean, and thorough.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+      <h3>Brake Service</h3>
+      <p>Pad replacements, rotor resurfacing, caliper inspection — complete brake system service you can trust.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-icon"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2"/><path d="M6 7V5a2 2 0 012-2h8a2 2 0 012 2v2M6 17v2a2 2 0 002 2h8a2 2 0 002-2v-2"/></svg></div>
+      <h3>Transmission</h3>
+      <p>Fluid flushes, filter changes, and full rebuilds for automatic and manual transmissions.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-icon"><svg viewBox="0 0 24 24"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg></div>
+      <h3>AC & Heating</h3>
+      <p>Recharge, leak detection, and full HVAC system repairs to keep you comfortable year-round.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg></div>
+      <h3>Tire & Wheel</h3>
+      <p>Rotation, balancing, alignment, and new tire installation for cars, trucks, and SUVs.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-icon"><svg viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg></div>
+      <h3>Suspension & Steering</h3>
+      <p>Shocks, struts, tie rods, and full suspension system diagnostics and repair.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-icon"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="22" height="12" rx="2"/><path d="M23 13H1M8 6V4M16 6V4M8 18v2M16 18v2"/></svg></div>
+      <h3>Truck & Fleet</h3>
+      <p>Specialized service for light and heavy-duty trucks. Fleet scheduling available.</p>
     </div>
   </div>
 </section>
 
-<!-- TIERS -->
-<section class="tiers-section" id="tiers">
-  <div class="container">
-    <div class="section-label reveal">Subscription tiers</div>
-    <h2 class="section-title reveal reveal-delay-1">Choose your rarity.</h2>
-    <p class="section-body reveal reveal-delay-2">No long-term commitment. Skip, pause, or cancel anytime. All tiers ship free to the US.</p>
-
-    <div class="tiers-grid">
-      <!-- Common -->
-      <div class="tier-card reveal reveal-delay-1">
-        <div class="tier-name">Common</div>
-        <div class="tier-price"><sup>$</sup>24<span style="font-size:1.2rem;color:var(--text-muted)">.99</span></div>
-        <div class="tier-period">per month</div>
-        <hr class="tier-divider">
-        <ul class="tier-features">
-          <li class="highlight">1× themed 1kg spool</li>
-          <li>1× spool profile card</li>
-          <li>Monthly themed colorway</li>
-          <li>Vault member discount code</li>
-          <li>Community Discord access</li>
-        </ul>
-        <a href="#" class="tier-btn tier-btn-outline">Start Common</a>
-      </div>
-
-      <!-- Rare (featured) -->
-      <div class="tier-card featured reveal reveal-delay-2">
-        <div class="tier-glow"></div>
-        <div class="tier-name">Rare</div>
-        <div class="tier-price"><sup>$</sup>39<span style="font-size:1.2rem;color:var(--text-muted)">.99</span></div>
-        <div class="tier-period">per month</div>
-        <hr class="tier-divider">
-        <ul class="tier-features">
-          <li class="highlight">2× themed 1kg spools</li>
-          <li class="highlight">1× exclusive 3D printed collectible</li>
-          <li>2× spool profile cards</li>
-          <li>Specialty filament access (shimmer, matte, silk)</li>
-          <li>Early colorway reveals</li>
-          <li>Vault member discount code</li>
-          <li>Community Discord access</li>
-        </ul>
-        <a href="#" class="tier-btn tier-btn-gold">Start Rare — Best Value</a>
-      </div>
-
-      <!-- Ultra Rare -->
-      <div class="tier-card reveal reveal-delay-3">
-        <div class="tier-name">Ultra Rare</div>
-        <div class="tier-price"><sup>$</sup>59<span style="font-size:1.2rem;color:var(--text-muted)">.99</span></div>
-        <div class="tier-period">per month</div>
-        <hr class="tier-divider">
-        <ul class="tier-features">
-          <li class="highlight">3× themed 1kg spools</li>
-          <li class="highlight">1× exclusive 3D print (larger format)</li>
-          <li class="highlight">1× bonus mystery specialty spool</li>
-          <li>All profile cards</li>
-          <li>First access to new drops before public</li>
-          <li>Name in monthly community credits</li>
-          <li>Vault member discount code</li>
-          <li>Priority Discord role</li>
-        </ul>
-        <a href="#" class="tier-btn tier-btn-outline">Start Ultra Rare</a>
-      </div>
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-img-wrap">
+    <img src="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=800&q=80" alt="Mechanic working on a vehicle">
+    <div class="about-badge">
+      <div class="num">20+</div>
+      <div class="lbl">Years of<br>Experience</div>
     </div>
-
-    <p class="reveal" style="text-align:center;margin-top:2rem;font-size:0.8rem;color:var(--text-muted);font-family:var(--font-heading);letter-spacing:0.06em">
-      All plans bill monthly. No contracts. Cancel anytime before next billing date. US shipping always free.
-    </p>
   </div>
-</section>
-
-<!-- HOW IT WORKS -->
-<section class="how-section" id="how">
-  <div class="container">
-    <div class="section-label reveal" style="text-align:center">The process</div>
-    <h2 class="section-title reveal reveal-delay-1" style="text-align:center;margin:0 auto 0.5rem">How the vault works.</h2>
-
-    <div class="how-steps">
-      <div class="how-step reveal reveal-delay-1">
-        <div class="how-step-num">01</div>
-        <div class="how-step-title">Pick your tier</div>
-        <div class="how-step-desc">Common, Rare, or Ultra Rare. You can upgrade or downgrade anytime from your account dashboard.</div>
+  <div class="about-text">
+    <p class="section-label">Who We Are</p>
+    <h2 class="section-title">Family-Owned.<br>Community-Trusted.</h2>
+    <p class="section-sub" style="margin-bottom:0">All Auto & Truck has been serving Addison, IL for over two decades. We're not a chain — we're your neighbors. Every vehicle gets treated like it's our own, from daily drivers to hot rods.</p>
+    <div class="about-features">
+      <div class="about-feat">
+        <div class="about-feat-icon"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg></div>
+        <div><h4>ASE Certified Technicians</h4><p>Our team holds current ASE certifications across all major repair disciplines.</p></div>
       </div>
-      <div class="how-step reveal reveal-delay-2">
-        <div class="how-step-num">02</div>
-        <div class="how-step-title">We curate the drop</div>
-        <div class="how-step-desc">Every month we theme the box around a Pokémon set, gaming season, or collector palette. Filament brands vary — always premium.</div>
+      <div class="about-feat">
+        <div class="about-feat-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <div><h4>Honest, Transparent Pricing</h4><p>We explain every repair in plain language and provide estimates before any work begins.</p></div>
       </div>
-      <div class="how-step reveal reveal-delay-3">
-        <div class="how-step-num">03</div>
-        <div class="how-step-title">It ships to your door</div>
-        <div class="how-step-desc">Free US shipping, always. Your box drops the 15th of each month. Track it live from your Vault account.</div>
-      </div>
-      <div class="how-step reveal reveal-delay-4">
-        <div class="how-step-num">04</div>
-        <div class="how-step-title">Print & show off</div>
-        <div class="how-step-desc">Post your prints to the Vault Discord. Best of the month wins bonus filament. The community votes.</div>
+      <div class="about-feat">
+        <div class="about-feat-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+        <div><h4>All Makes & Models Welcome</h4><p>Foreign or domestic, car or truck — if it has an engine, we can work on it.</p></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- EDGE / VISUAL SECTION -->
-<section class="edge-section">
-  <div class="container">
-    <div class="edge-inner">
-      <div>
-        <div class="section-label reveal">Why The Collectors Vault</div>
-        <h2 class="section-title reveal reveal-delay-1">Built by a<br>collector. For<br>collectors.</h2>
-        <p class="section-body reveal reveal-delay-2" style="margin-bottom:1.5rem">
-          The Collectors Vault 3D started as a Pokémon card and 3D printing shop. This subscription is the natural extension — themed colorways that align with set releases, exclusive prints you won't find anywhere else, and a community that actually gets it.
-        </p>
-        <div class="reveal reveal-delay-3" style="display:flex;flex-direction:column;gap:12px">
-          <div style="display:flex;align-items:center;gap:10px;font-size:0.88rem;color:var(--text-secondary)">
-            <span style="color:var(--gold);font-size:0.8rem">▸</span> Pokémon set–aligned colorway calendar
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;font-size:0.88rem;color:var(--text-secondary)">
-            <span style="color:var(--gold);font-size:0.8rem">▸</span> Exclusive 3D prints made in-house — never outsourced
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;font-size:0.88rem;color:var(--text-secondary)">
-            <span style="color:var(--gold);font-size:0.8rem">▸</span> Zero color repeats within any 12-month window
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;font-size:0.88rem;color:var(--text-secondary)">
-            <span style="color:var(--gold);font-size:0.8rem">▸</span> Skip or pause any month — no questions asked
-          </div>
-        </div>
+<!-- BOOKING -->
+<section id="booking">
+  <div class="booking-info">
+    <p class="section-label">Schedule Service</p>
+    <h2 class="section-title">Book Your<br>Appointment</h2>
+    <p class="section-sub">Pick a time that works for you. We'll confirm and make sure everything's ready when you arrive.</p>
+    <div class="booking-contact">
+      <div class="contact-item">
+        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        <div><strong>Phone</strong><span>(630) 935-5750</span></div>
       </div>
+      <div class="contact-item">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <div><strong>Email</strong><span>anythingauto20@gmail.com</span></div>
+      </div>
+      <div class="contact-item">
+        <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <div><strong>Address</strong><span>463 S Vista Ave, Addison, IL 60101</span></div>
+      </div>
+      <div class="contact-item">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <div><strong>Hours</strong><span>Mon – Fri: 8am – 4pm &nbsp;|&nbsp; Sat & Sun: Closed</span></div>
+      </div>
+    </div>
+  </div>
 
-      <div class="edge-visual reveal reveal-delay-2">
-        <div class="spool-stack">
-          <div class="spool spool-1"></div>
-          <div class="spool spool-2"></div>
-          <div class="spool spool-3"></div>
-          <div class="spool-center">⬡</div>
-        </div>
-        <div class="edge-tags">
-          <div class="edge-tag">Scarlet Season</div>
-          <div class="edge-tag">Holo Finish</div>
-          <div class="edge-tag">Ghost Type</div>
-        </div>
+  <!-- CAL.COM PLACEHOLDER EMBED -->
+  <div class="cal-wrapper">
+    <div class="cal-header">
+      <h3>Select a Date & Time</h3>
+      <span class="cal-badge">Powered by Cal.com</span>
+    </div>
+    <div class="cal-mock" id="calMock">
+      <div class="cal-mock-month" id="calMonth">June 2025</div>
+      <div class="cal-mock-grid" id="calGrid"></div>
+      <div id="calTimesSection" style="display:none;">
+        <div style="font-family:var(--font-display);font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver);margin-bottom:0.6rem;">Available Times</div>
+        <div class="cal-times" id="calTimes"></div>
       </div>
+      <button class="cal-confirm" id="calConfirm" style="display:none;">Confirm Appointment</button>
+      <p class="cal-note" id="calNote">Select a date above to see available times</p>
+    </div>
+    <div class="cal-powered">
+      <span>Live booking powered by</span>
+      <strong>Cal.com</strong>
+      <span>— free for small businesses</span>
     </div>
   </div>
 </section>
 
-<!-- TESTIMONIALS -->
-<section class="testimonials-section">
-  <div class="container">
-    <div class="section-label reveal" style="text-align:center">Early members</div>
-    <h2 class="section-title reveal reveal-delay-1" style="text-align:center;margin:0 auto 0">What makers are saying.</h2>
-
-    <div class="testimonials-grid" style="margin-top:3rem">
-      <div class="testimonial holo-card reveal reveal-delay-1">
-        <div class="stars">★★★★★</div>
-        <p class="testimonial-text">The Scarlet Season colorway hit right when the new Pokémon set dropped. The timing was perfect and the filament quality was better than anything I've ordered off Amazon.</p>
-        <div class="testimonial-author">
-          <div class="author-avatar" style="background:rgba(229,57,53,0.15);color:#e53935">MK</div>
-          <div>
-            <div class="author-name">Mike K.</div>
-            <div class="author-handle">Bambu X1C • Founding Member</div>
-          </div>
-        </div>
-      </div>
-      <div class="testimonial holo-card reveal reveal-delay-2">
-        <div class="stars">★★★★★</div>
-        <p class="testimonial-text">The exclusive print in the Rare tier is what sold me. Got a little Snorlax-style figure I didn't even know I needed. Community is great too — way more active than I expected.</p>
-        <div class="testimonial-author">
-          <div class="author-avatar" style="background:rgba(240,192,64,0.12);color:#f0c040">JT</div>
-          <div>
-            <div class="author-name">Jamie T.</div>
-            <div class="author-handle">Creality K1 Max • Rare Tier</div>
-          </div>
-        </div>
-      </div>
-      <div class="testimonial holo-card reveal reveal-delay-3">
-        <div class="stars">★★★★★</div>
-        <p class="testimonial-text">Finally a sub box that doesn't just dump random spools on you. Every color has a theme and the profile cards mean I'm not wasting filament dialing in settings. Worth every dollar.</p>
-        <div class="testimonial-author">
-          <div class="author-avatar" style="background:rgba(0,229,255,0.1);color:#00e5ff">SR</div>
-          <div>
-            <div class="author-name">Sara R.</div>
-            <div class="author-handle">Prusa MK4 • Ultra Rare Tier</div>
-          </div>
-        </div>
-      </div>
-    </div>
+<!-- REVIEWS -->
+<section id="reviews">
+  <div class="reviews-header">
+    <p class="section-label">Customer Reviews</p>
+    <h2 class="section-title">What Our<br>Customers Say</h2>
   </div>
-</section>
-
-<!-- FINAL CTA -->
-<section class="final-cta">
-  <div class="container" style="position:relative;z-index:1;text-align:center">
-    <div class="founding-badge reveal">
-      <div class="founding-dot"></div>
-      Founding Member Spots Open
+  <div class="reviews-grid">
+    <div class="review-card">
+      <div class="stars"><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div></div>
+      <p class="review-text">Brought my F-250 in for a brake job and they had it done same day. Honest about what actually needed fixing — didn't try to upsell me on stuff I didn't need. Will definitely be back.</p>
+      <div class="reviewer">
+        <div class="reviewer-avatar">MT</div>
+        <div><div class="reviewer-name">Mike T.</div><div class="reviewer-vehicle">2020 Ford F-250</div></div>
+      </div>
     </div>
-    <h2 class="section-title reveal reveal-delay-1" style="margin:0 auto 1.2rem">Your next rare pull<br>is in the mail.</h2>
-    <p class="section-body reveal reveal-delay-2" style="margin:0 auto 3rem;text-align:center">
-      Founding members lock in their price forever — no increases as we grow. First 50 spots only.
-    </p>
-    <div class="hero-cta-group reveal reveal-delay-3" style="margin-top:0">
-      <a href="#tiers" class="btn-primary">Join the Vault Now</a>
-      <a href="https://thecollectorsvault3d.com" class="btn-ghost" target="_blank">Visit Our Shop</a>
+    <div class="review-card">
+      <div class="stars"><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div></div>
+      <p class="review-text">Finally found a mechanic I actually trust. They explained everything before touching my car, gave me a written estimate, and came in under budget. Family-run business with real integrity.</p>
+      <div class="reviewer">
+        <div class="reviewer-avatar">SR</div>
+        <div><div class="reviewer-name">Sandra R.</div><div class="reviewer-vehicle">2018 Honda CR-V</div></div>
+      </div>
+    </div>
+    <div class="review-card">
+      <div class="stars"><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div></div>
+      <p class="review-text">My check engine light had been on for months. They ran diagnostics, found the issues, fixed them the same afternoon. Friendly, fast, and fairly priced. This is my shop now.</p>
+      <div class="reviewer">
+        <div class="reviewer-avatar">DJ</div>
+        <div><div class="reviewer-name">David J.</div><div class="reviewer-vehicle">2016 Chevy Silverado</div></div>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- FOOTER -->
 <footer>
-  <div class="footer-logo">THE COLLECTORS VAULT 3D © 2025</div>
-  <ul class="footer-links">
-    <li><a href="#">FAQ</a></li>
-    <li><a href="#">Shipping Policy</a></li>
-    <li><a href="#">Cancel Anytime</a></li>
-    <li><a href="https://thecollectorsvault3d.com">Main Store</a></li>
-  </ul>
-  <div class="footer-copy">thecollectorsvault3d.com</div>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <a href="#" class="nav-logo">All <span>&</span> Auto Truck</a>
+      <p>A wide range of automotive repairs — from Gramma's grocery getter to hot rods. Also many light duty trucks. Serving Addison, IL.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Services</h4>
+      <ul>
+        <li><a href="#services">Engine Diagnostics</a></li>
+        <li><a href="#services">Oil Change & Lube</a></li>
+        <li><a href="#services">Brake Service</a></li>
+        <li><a href="#services">Transmission</a></li>
+        <li><a href="#services">AC & Heating</a></li>
+        <li><a href="#services">Truck & Fleet</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <ul>
+        <li><a href="tel:6309355750">(630) 935-5750</a></li>
+        <li><a href="mailto:anythingauto20@gmail.com">anythingauto20@gmail.com</a></li>
+        <li><a href="https://maps.google.com/?q=463+S+Vista+Ave+Addison+IL+60101" target="_blank">463 S Vista Ave, Addison IL</a></li>
+        <li><a href="#">Mon–Fri: 8am–4pm</a></li>
+        <li><a href="#">Sat &amp; Sun: Closed</a></li>
+        <li><a href="#booking">Book Appointment</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 All Auto & Truck. All rights reserved.</p>
+    <p style="color:var(--yellow)">Built for the road ahead.</p>
+  </div>
 </footer>
 
 <script>
-  // Custom cursor
-  const cursor = document.getElementById('cursor');
-  const ring = document.getElementById('cursorRing');
-  let mx = 0, my = 0, rx = 0, ry = 0;
-  document.addEventListener('mousemove', e => {
-    mx = e.clientX; my = e.clientY;
-    cursor.style.transform = `translate(${mx - 5}px, ${my - 5}px)`;
-  });
-  function animRing() {
-    rx += (mx - rx - 16) * 0.12;
-    ry += (my - ry - 16) * 0.12;
-    ring.style.transform = `translate(${rx}px, ${ry}px)`;
-    requestAnimationFrame(animRing);
+  // ── CALENDAR MOCK ──
+  const times = ['8:00 AM','9:00 AM','10:00 AM','11:00 AM','1:00 PM','2:00 PM','3:00 PM'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const days = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+  let selected = { day: null, time: null };
+  const now = new Date();
+  let curYear = now.getFullYear();
+  let curMonth = now.getMonth();
+
+  function buildCal() {
+    const grid = document.getElementById('calGrid');
+    const label = document.getElementById('calMonth');
+    label.textContent = months[curMonth] + ' ' + curYear;
+    grid.innerHTML = '';
+    // Day headers
+    days.forEach(d => {
+      const el = document.createElement('div');
+      el.className = 'cal-day header'; el.textContent = d; grid.appendChild(el);
+    });
+    const firstDay = new Date(curYear, curMonth, 1).getDay();
+    const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+    for (let i = 0; i < firstDay; i++) {
+      const el = document.createElement('div'); el.className = 'cal-day empty'; grid.appendChild(el);
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const el = document.createElement('div');
+      const dow = new Date(curYear, curMonth, d).getDay();
+      const isPast = new Date(curYear, curMonth, d) < new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const isWeekend = dow === 0 || dow === 6;
+      if (isPast || isWeekend) {
+        el.className = 'cal-day unavailable'; el.textContent = d;
+      } else {
+        el.className = 'cal-day available' + (selected.day === d && selected.month === curMonth ? ' selected' : '');
+        el.textContent = d;
+        el.onclick = () => selectDay(d);
+      }
+      if (d === now.getDate() && curMonth === now.getMonth() && curYear === now.getFullYear() && !isPast && !isWeekend) {
+        el.classList.add('today');
+      }
+      grid.appendChild(el);
+    }
   }
-  animRing();
-  document.querySelectorAll('a, button, .cw, .tier-card, .box-item').forEach(el => {
-    el.addEventListener('mouseenter', () => {
-      cursor.style.transform += ' scale(1.8)';
-      ring.style.width = '48px'; ring.style.height = '48px';
-      ring.style.opacity = '0.6';
+
+  function selectDay(d) {
+    selected.day = d; selected.month = curMonth; selected.time = null;
+    buildCal();
+    const ts = document.getElementById('calTimesSection');
+    ts.style.display = 'block';
+    const tc = document.getElementById('calTimes');
+    tc.innerHTML = '';
+    times.forEach(t => {
+      const el = document.createElement('div');
+      el.className = 'cal-time'; el.textContent = t;
+      el.onclick = () => selectTime(t, el);
+      tc.appendChild(el);
     });
-    el.addEventListener('mouseleave', () => {
-      ring.style.width = '32px'; ring.style.height = '32px';
-      ring.style.opacity = '1';
-    });
+    document.getElementById('calConfirm').style.display = 'none';
+    document.getElementById('calNote').textContent = 'Now select a time below';
+  }
+
+  function selectTime(t, el) {
+    selected.time = t;
+    document.querySelectorAll('.cal-time').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById('calConfirm').style.display = 'block';
+    document.getElementById('calNote').textContent = months[curMonth] + ' ' + selected.day + ' at ' + t + ' — click Confirm to book';
+  }
+
+  document.getElementById('calConfirm').addEventListener('click', function() {
+    this.textContent = '✓ Booking Request Sent!';
+    this.style.background = '#2d7a2d';
+    this.style.color = '#fff';
+    document.getElementById('calNote').textContent = 'We\'ll call or text to confirm your appointment.';
+    setTimeout(() => {
+      this.textContent = 'Confirm Appointment';
+      this.style.background = ''; this.style.color = '';
+    }, 4000);
   });
 
-  // Scroll reveal
-  const revealEls = document.querySelectorAll('.reveal');
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
-  }, { threshold: 0.12 });
-  revealEls.forEach(el => obs.observe(el));
+  buildCal();
+
+  // ── NAV ACTIVE STATE ──
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+    navLinks.forEach(a => { a.style.color = a.getAttribute('href') === '#' + current ? 'var(--white)' : ''; });
+  });
 </script>
 </body>
 </html>
