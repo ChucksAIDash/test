@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Strain Chemical Profile Explorer</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.8.1/prop-types.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.12.7/Recharts.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            surface: {
+              900: '#0a0f0d',
+              850: '#0f1613',
+              800: '#141d19',
+              700: '#1c2822',
+              600: '#28362f',
+            },
+            accent: {
+              DEFAULT: '#34d399',
+              dim: '#10b981',
+            },
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #28362f; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #34d399; }
+    body { background: #0a0f0d; }
+
+    /* Strain-switch entrance animation */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px) scale(0.995); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .animate-fadeUp { animation: fadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+    .animate-fadeUp-delayed { animation: fadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both; }
+  </style>
+</head>
+<body class="font-sans antialiased text-gray-200">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    /* ============================================================
+       MOCK DATABASE
+       composition values are relative percentages
+       ============================================================ */
+    const STRAIN_DB = [
+      {
+        id: 'blue-dream',
+        name: 'Blue Dream',
+        type: 'Hybrid',
+        lineage: 'Blueberry × Haze',
+        description:
+          'A sativa-leaning hybrid famous for balanced, full-body relaxation with gentle cerebral invigoration. Sweet berry aroma inherited from its Blueberry parent.',
+        composition: {
+          cannabinoids: { THC: 18.0, CBD: 0.2, CBG: 1.0 },
+          terpenes: { Myrcene: 0.45, Limonene: 0.15, Pinene: 0.32, Linalool: 0.05, Caryophyllene: 0.14 },
+        },
+      },
+      {
+        id: 'sour-diesel',
+        name: 'Sour Diesel',
+        type: 'Sativa',
+        lineage: 'Chemdawg × Super Skunk',
+        description:
+          'A fast-acting sativa with a pungent, fuel-like aroma. Known for energizing, dreamy cerebral effects — a longtime favorite for daytime use.',
+        composition: {
+          cannabinoids: { THC: 20.5, CBD: 0.1, CBG: 0.6 },
+          terpenes: { Myrcene: 0.25, Limonene: 0.42, Pinene: 0.18, Linalool: 0.03, Caryophyllene: 0.30 },
+        },
+      },
+      {
+        id: 'og-kush',
+        name: 'OG Kush',
+        type: 'Hybrid',
+        lineage: 'Chemdawg × Hindu Kush',
+        description:
+          'The genetic backbone of West Coast cannabis. Complex aroma of fuel, skunk, and spice with a heavy, euphoric high that blends head and body effects.',
+        composition: {
+          cannabinoids: { THC: 22.0, CBD: 0.3, CBG: 0.4 },
+          terpenes: { Myrcene: 0.38, Limonene: 0.28, Pinene: 0.10, Linalool: 0.12, Caryophyllene: 0.35 },
+        },
+      },
+      {
+        id: 'granddaddy-purple',
+        name: 'Granddaddy Purple',
+        type: 'Indica',
+        lineage: 'Purple Urkle × Big Bud',
+        description:
+          'A classic California indica with deep purple hues and a grape-and-berry aroma. Delivers powerful relaxation of both mind and body.',
+        composition: {
+          cannabinoids: { THC: 17.5, CBD: 0.4, CBG: 0.3 },
+          terpenes: { Myrcene: 0.62, Limonene: 0.10, Pinene: 0.06, Linalool: 0.25, Caryophyllene: 0.18 },
+        },
+      },
+      {
+        id: 'jack-herer',
+        name: 'Jack Herer',
+        type: 'Sativa',
+        lineage: 'Haze × (Northern Lights #5 × Shiva Skunk)',
+        description:
+          'Named after the cannabis activist, this sativa-dominant strain offers blissful, clear-headed creativity with a spicy, pine-scented profile.',
+        composition: {
+          cannabinoids: { THC: 19.0, CBD: 0.2, CBG: 1.2 },
+          terpenes: { Myrcene: 0.20, Limonene: 0.22, Pinene: 0.48, Linalool: 0.04, Caryophyllene: 0.16 },
+        },
+      },
+      {
+        id: 'gelato',
+        name: 'Gelato',
+        type: 'Hybrid',
+        lineage: 'Sunset Sherbet × Thin Mint GSC',
+        description:
+          'A dessert-like hybrid with a sweet, creamy citrus profile. Potent euphoria balanced with physical relaxation — smooth and heavy-hitting.',
+        composition: {
+          cannabinoids: { THC: 21.0, CBD: 0.1, CBG: 0.5 },
+          terpenes: { Myrcene: 0.18, Limonene: 0.36, Pinene: 0.08, Linalool: 0.20, Caryophyllene: 0.40 },
+        },
+      },
+    ];
+
+    /* ============================================================
+       HELPERS
+       ============================================================ */
+    const TYPE_STYLES = {
+      Indica: { badge: 'bg-purple-500/15 text-purple-300 ring-purple-500/30', dot: 'bg-purple-400' },
+      Sativa: { badge: 'bg-amber-500/15 text-amber-300 ring-amber-500/30', dot: 'bg-amber-400' },
+      Hybrid: { badge: 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30', dot: 'bg-emerald-400' },
+    };
+
+    function TypeBadge({ type, small }) {
+      const s = TYPE_STYLES[type];
+      return (
+        <span className={`inline-flex items-center gap-1.5 rounded-full ring-1 ring-inset font-medium ${s.badge} ${small ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-xs'}`}>
+          <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`}></span>
+          {type}
+        </span>
+      );
+    }
+
+    /* ============================================================
+       SIDEBAR
+       ============================================================ */
+    function Sidebar({ strains, activeId, onSelect }) {
+      return (
+        <aside className="relative z-10 w-72 shrink-0 flex flex-col border-r border-white/5 bg-surface-850/70 backdrop-blur-xl">
+          {/* Brand */}
+          <div className="px-5 py-5 border-b border-surface-700">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-accent/10 ring-1 ring-accent/30 flex items-center justify-center">
+                <svg className="h-5 w-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18M12 21c0-4-2.5-6-6-6 3.5 0 6-2 6-6 0 4 2.5 6 6 6-3.5 0-6 2-6 6zM7 5.5C8.8 6.5 10 8 10 10 8 10 6.2 9 5.2 7.2M17 5.5C15.2 6.5 14 8 14 10c2 0 3.8-1 4.8-2.8" />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-sm font-bold tracking-tight text-white leading-tight">Strain Explorer</h1>
+                <p className="text-[11px] text-gray-500">Chemical Profile Lab</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Strain list */}
+          <nav className="flex-1 overflow-y-auto p-3 space-y-1.5">
+            <p className="px-2 pt-1 pb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-500">
+              Strain Library — {strains.length}
+            </p>
+            {strains.map((strain) => {
+              const active = strain.id === activeId;
+              return (
+                <button
+                  key={strain.id}
+                  onClick={() => onSelect(strain.id)}
+                  className={`w-full text-left rounded-xl px-3.5 py-3 transition-all duration-150 group
+                    ${active
+                      ? 'bg-accent/10 ring-1 ring-accent/40 shadow-lg shadow-accent/5'
+                      : 'hover:bg-surface-700/60 ring-1 ring-transparent'}`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className={`text-sm font-semibold truncate ${active ? 'text-accent' : 'text-gray-200 group-hover:text-white'}`}>
+                      {strain.name}
+                    </span>
+                    <TypeBadge type={strain.type} small />
+                  </div>
+                  <p className="mt-0.5 text-[11px] text-gray-500 truncate">{strain.lineage}</p>
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="px-5 py-4 border-t border-surface-700">
+            <p className="text-[10px] text-gray-600">Mock data · v0.1 · educational use</p>
+          </div>
+        </aside>
+      );
+    }
+
+    /* ============================================================
+       HEADER (active strain)
+       ============================================================ */
+    function StrainHeader({ strain }) {
+      return (
+        <div
+          key={strain.id}
+          className="shrink-0 rounded-2xl bg-surface-800/50 backdrop-blur-xl ring-1 ring-white/[0.06] shadow-2xl shadow-black/40 px-6 py-4 animate-fadeUp"
+        >
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3">
+                <h2 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white via-white to-emerald-200/80 bg-clip-text text-transparent">
+                  {strain.name}
+                </h2>
+                <TypeBadge type={strain.type} />
+              </div>
+              <p className="mt-0.5 text-xs font-medium text-gray-500">{strain.lineage}</p>
+            </div>
+            <div className="flex gap-6 text-right">
+              <Stat label="THC" value={strain.composition.cannabinoids.THC + '%'} />
+              <Stat label="CBD" value={strain.composition.cannabinoids.CBD + '%'} />
+              <Stat label="CBG" value={strain.composition.cannabinoids.CBG + '%'} />
+            </div>
+          </div>
+          <p className="mt-2 text-sm leading-relaxed text-gray-400 max-w-4xl line-clamp-2">{strain.description}</p>
+        </div>
+      );
+    }
+
+    function Stat({ label, value }) {
+      return (
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-500">{label}</p>
+          <p className="text-lg font-bold text-accent tabular-nums">{value}</p>
+        </div>
+      );
+    }
+
+    /* ============================================================
+       PANELS (placeholders)
+       ============================================================ */
+    function PanelShell({ title, subtitle, icon, children }) {
+      return (
+        <section className="flex flex-1 min-h-0 flex-col rounded-2xl bg-surface-800/50 backdrop-blur-xl ring-1 ring-white/[0.06] shadow-2xl shadow-black/40 overflow-hidden transition-all duration-300 hover:ring-white/[0.12]">
+          <header className="flex items-center gap-3 px-5 py-4 border-b border-white/5">
+            <div className="h-8 w-8 rounded-lg bg-accent/10 ring-1 ring-accent/20 flex items-center justify-center text-accent">
+              {icon}
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-white">{title}</h3>
+              <p className="text-[11px] text-gray-500">{subtitle}</p>
+            </div>
+          </header>
+          <div className="flex-1 min-h-0 p-5">{children}</div>
+        </section>
+      );
+    }
+
+    const {
+      ResponsiveContainer, BarChart, Bar, XAxis, YAxis,
+      CartesianGrid, Tooltip, Cell,
+    } = Recharts;
+
+    const CHART_COLORS = {
+      Cannabinoid: '#4ade80', // neon green
+      Terpene: '#22d3ee',     // cyan
+    };
+
+    function buildChartData(strain) {
+      const { cannabinoids, terpenes } = strain.composition;
+      return [
+        ...Object.entries(cannabinoids).map(([name, value]) => ({ name, value, category: 'Cannabinoid' })),
+        ...Object.entries(terpenes).map(([name, value]) => ({ name, value, category: 'Terpene' })),
+      ];
+    }
+
+    function ChartTooltip({ active, payload }) {
+      if (!active || !payload || !payload.length) return null;
+      const d = payload[0].payload;
+      return (
+        <div className="rounded-lg bg-surface-900/95 ring-1 ring-surface-600 px-3 py-2 shadow-xl">
+          <p className="text-xs font-bold text-white">{d.name}</p>
+          <p className="text-[11px]" style={{ color: CHART_COLORS[d.category] }}>
+            {d.category} · {d.value}%
+          </p>
+          <p className="text-[10px] text-gray-500 mt-0.5">Click to inspect molecule</p>
+        </div>
+      );
+    }
+
+    function CompoundTick({ x, y, payload, activeCompound, onSelect }) {
+      const isActive = payload.value === activeCompound;
+      return (
+        <text
+          x={x} y={y} dy={4} textAnchor="end"
+          onClick={() => onSelect(payload.value)}
+          style={{ cursor: 'pointer' }}
+          fill={isActive ? '#ffffff' : '#9ca3af'}
+          fontSize={11}
+          fontWeight={isActive ? 700 : 500}
+        >
+          {payload.value}
+        </text>
+      );
+    }
+
+    function CompositionChart({ strain, activeCompound, onSelectCompound }) {
+      const data = buildChartData(strain);
+      return (
+        <PanelShell
+          title="Chemical Profile Chart"
+          subtitle="Cannabinoid & terpene composition — click a compound"
+          icon={
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" d="M4 20V10M10 20V4M16 20v-8M22 20H2" />
+            </svg>
+          }
+        >
+          <div key={strain.id} className="flex h-full flex-col animate-fadeUp-delayed">
+          {/* Legend */}
+          <div className="flex items-center gap-5 mb-2 px-1">
+            <span className="flex items-center gap-1.5 text-[11px] font-medium text-gray-400">
+              <span className="h-2 w-2 rounded-sm" style={{ background: CHART_COLORS.Cannabinoid }}></span>
+              Cannabinoids
+            </span>
+            <span className="flex items-center gap-1.5 text-[11px] font-medium text-gray-400">
+              <span className="h-2 w-2 rounded-sm" style={{ background: CHART_COLORS.Terpene }}></span>
+              Terpenes
+            </span>
+            <span className="ml-auto text-[10px] text-gray-600">√ scale</span>
+          </div>
+
+          <div className="flex-1 min-h-[260px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={data}
+              layout="vertical"
+              margin={{ top: 4, right: 18, left: 8, bottom: 0 }}
+              onClick={(s) => { if (s && s.activeLabel) onSelectCompound(s.activeLabel); }}
+              style={{ cursor: 'pointer' }}
+            >
+              <CartesianGrid horizontal={false} stroke="#1c2822" />
+              <XAxis
+                type="number"
+                scale="sqrt"
+                domain={[0, 'dataMax']}
+                tick={{ fill: '#6b7280', fontSize: 10 }}
+                tickFormatter={(v) => v + '%'}
+                axisLine={{ stroke: '#28362f' }}
+                tickLine={false}
+              />
+              <YAxis
+                type="category"
+                dataKey="name"
+                width={104}
+                axisLine={false}
+                tickLine={false}
+                tick={<CompoundTick activeCompound={activeCompound} onSelect={onSelectCompound} />}
+              />
+              <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(52, 211, 153, 0.06)' }} />
+              <Bar
+                dataKey="value"
+                radius={[0, 6, 6, 0]}
+                barSize={18}
+                cursor="pointer"
+                onClick={(d) => onSelectCompound(d.name)}
+              >
+                {data.map((entry) => {
+                  const isActive = entry.name === activeCompound;
+                  return (
+                    <Cell
+                      key={entry.name}
+                      fill={CHART_COLORS[entry.category]}
+                      fillOpacity={activeCompound && !isActive ? 0.35 : 1}
+                      stroke={isActive ? '#ffffff' : 'none'}
+                      strokeWidth={isActive ? 1.5 : 0}
+                    />
+                  );
+                })}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+          </div>
+          </div>
+        </PanelShell>
+      );
+    }
+
+    /* ---------- PubChem + Three.js helpers ---------- */
+
+    // Map UI names to unambiguous PubChem compound names
+    const PUBCHEM_NAMES = {
+      THC: 'dronabinol',            // delta-9-THC
+      CBD: 'cannabidiol',
+      CBG: 'cannabigerol',
+      Myrcene: 'beta-myrcene',
+      Limonene: 'limonene',
+      Pinene: 'alpha-pinene',
+      Linalool: 'linalool',
+      Caryophyllene: 'beta-caryophyllene',
+    };
+
+    // CPK-ish colors + radii + names + atomic weights, keyed by atomic number
+    const ELEMENTS = {
+      1:  { color: 0xf3f4f6, radius: 0.26, symbol: 'H',  name: 'Hydrogen',   weight: 1.008 },
+      6:  { color: 0x3a4750, radius: 0.42, symbol: 'C',  name: 'Carbon',     weight: 12.011 },
+      7:  { color: 0x3b82f6, radius: 0.40, symbol: 'N',  name: 'Nitrogen',   weight: 14.007 },
+      8:  { color: 0xef4444, radius: 0.40, symbol: 'O',  name: 'Oxygen',     weight: 15.999 },
+      15: { color: 0xf97316, radius: 0.46, symbol: 'P',  name: 'Phosphorus', weight: 30.974 },
+      16: { color: 0xeab308, radius: 0.46, symbol: 'S',  name: 'Sulfur',     weight: 32.06 },
+      17: { color: 0x22c55e, radius: 0.44, symbol: 'Cl', name: 'Chlorine',   weight: 35.45 },
+    };
+    const FALLBACK_ELEMENT = { color: 0xd946ef, radius: 0.42, symbol: '?', name: 'Unknown', weight: 0 };
+
+    // Special "key atom" notes, keyed by display compound then atomic number
+    const ATOM_NOTES = {
+      THC: { 8: 'Phenolic / pyran oxygen — key contact for CB1 receptor binding' },
+      CBD: { 8: 'Hydroxyl oxygen — drives CBD’s polarity and hydrogen bonding' },
+      CBG: { 8: 'Hydroxyl oxygen — reactive site in cannabinoid biosynthesis' },
+      Linalool: { 8: 'Hydroxyl oxygen — source of linalool’s floral, polar character' },
+    };
+
+    // Guided-tour narration per compound (falls back to generic templates)
+    const TOUR_TEXT = {
+      THC: {
+        overview: 'The full Δ9-THC conformer. Every atom sits in PubChem’s lowest-energy geometry. Drag to explore, or let the tour drive.',
+        core: 'The fused ring scaffold — the rigid core that locks THC’s pharmacophore into the exact geometry CB1 recognizes.',
+        polar: 'The phenolic / pyran oxygens. This polar “business end” hydrogen-bonds deep inside the receptor pocket.',
+        tail: 'The pentyl tail. This greasy chain makes THC fat-soluble, letting it cross the blood–brain barrier.',
+      },
+    };
+
+    function disposeGroup(group) {
+      group.traverse((obj) => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) obj.material.dispose();
+      });
+      while (group.children.length) group.remove(group.children[0]);
+    }
+
+    function centroidOf(indices, positions) {
+      const c = new THREE.Vector3();
+      if (!indices.length) return c;
+      indices.forEach((i) => c.add(positions[i]));
+      return c.multiplyScalar(1 / indices.length);
+    }
+
+    // Parse a PubChem record → ball-and-stick group + interaction metadata
+    function buildMolecule(record, displayName) {
+      const compound = record.PC_Compounds[0];
+      const elements = compound.atoms.element;
+      const aids = compound.atoms.aid;
+      const conf = compound.coords[0].conformers[0];
+      const aidToIndex = {};
+      aids.forEach((id, i) => { aidToIndex[id] = i; });
+
+      const n = elements.length;
+      let cx = 0, cy = 0, cz = 0;
+      for (let i = 0; i < n; i++) {
+        cx += conf.x[i]; cy += conf.y[i]; cz += (conf.z ? conf.z[i] : 0);
+      }
+      cx /= n; cy /= n; cz /= n;
+
+      const positions = [];
+      let radius = 0;
+      for (let i = 0; i < n; i++) {
+        const p = new THREE.Vector3(
+          conf.x[i] - cx,
+          conf.y[i] - cy,
+          (conf.z ? conf.z[i] : 0) - cz
+        );
+        positions.push(p);
+        radius = Math.max(radius, p.length());
+      }
+
+      const group = new THREE.Group();
+      const formulaCounts = {};
+      const atoms = [];        // { mesh, atomicNumber, symbol, name, weight, note, position }
+      const notes = ATOM_NOTES[displayName] || {};
+
+      // Atoms (balls)
+      for (let i = 0; i < n; i++) {
+        const an = elements[i];
+        const el = ELEMENTS[an] || FALLBACK_ELEMENT;
+        formulaCounts[el.symbol] = (formulaCounts[el.symbol] || 0) + 1;
+        const mesh = new THREE.Mesh(
+          new THREE.SphereGeometry(el.radius, 32, 32),
+          new THREE.MeshPhongMaterial({
+            color: el.color,
+            shininess: 110,
+            specular: 0x556677,
+            emissive: el.color,
+            emissiveIntensity: 0.06,
+          })
+        );
+        mesh.position.copy(positions[i]);
+        const atom = {
+          mesh, atomicNumber: an, symbol: el.symbol, name: el.name,
+          weight: el.weight, note: notes[an] || null, position: positions[i].clone(),
+        };
+        mesh.userData.atom = atom;
+        group.add(mesh);
+        atoms.push(atom);
+      }
+
+      // Bonds (sticks) — twin/triple cylinders for higher bond orders
+      const doubleBonds = [];
+      const up = new THREE.Vector3(0, 1, 0);
+      const bonds = compound.bonds;
+      if (bonds) {
+        for (let i = 0; i < bonds.aid1.length; i++) {
+          const a = positions[aidToIndex[bonds.aid1[i]]];
+          const b = positions[aidToIndex[bonds.aid2[i]]];
+          if (!a || !b) continue;
+          const order = bonds.order ? bonds.order[i] : 1;
+          const dir = new THREE.Vector3().subVectors(b, a);
+          const len = dir.length();
+          const ndir = dir.clone().normalize();
+          const mid = a.clone().lerp(b, 0.5);
+
+          // perpendicular offset direction for parallel bonds
+          let perp = new THREE.Vector3(0, 1, 0).cross(ndir);
+          if (perp.lengthSq() < 1e-4) perp = new THREE.Vector3(1, 0, 0).cross(ndir);
+          perp.normalize();
+
+          const makeCyl = (offset, rad, isMultiple) => {
+            const mat = new THREE.MeshPhongMaterial({
+              color: 0x9ca3af, shininess: 45, specular: 0x333333,
+              emissive: isMultiple ? 0x22d3ee : 0x000000,
+              emissiveIntensity: isMultiple ? 0.3 : 0,
+            });
+            const cyl = new THREE.Mesh(new THREE.CylinderGeometry(rad, rad, len, 12), mat);
+            cyl.position.copy(mid).add(offset);
+            cyl.quaternion.setFromUnitVectors(up, ndir);
+            group.add(cyl);
+            if (isMultiple) doubleBonds.push(cyl);
+          };
+
+          if (order === 2) {
+            const o = perp.clone().multiplyScalar(0.11);
+            makeCyl(o, 0.05, true);
+            makeCyl(o.clone().negate(), 0.05, true);
+          } else if (order >= 3) {
+            const o = perp.clone().multiplyScalar(0.14);
+            makeCyl(o, 0.045, true);
+            makeCyl(new THREE.Vector3(), 0.045, true);
+            makeCyl(o.clone().negate(), 0.045, true);
+          } else {
+            makeCyl(new THREE.Vector3(), 0.07, false);
+          }
+        }
+      }
+
+      // Hill-order formula string
+      const orderKeys = Object.keys(formulaCounts).sort((x, y) => {
+        const rank = (s) => (s === 'C' ? 0 : s === 'H' ? 1 : 2);
+        return rank(x) - rank(y) || x.localeCompare(y);
+      });
+      const formula = orderKeys.map((s) => s + (formulaCounts[s] > 1 ? formulaCounts[s] : '')).join('');
+
+      // ---- Build guided-tour stops from real geometry ----
+      const carbonIdx = [], heteroIdx = [];
+      for (let i = 0; i < n; i++) {
+        if (elements[i] === 6) carbonIdx.push(i);
+        if (elements[i] === 7 || elements[i] === 8) heteroIdx.push(i);
+      }
+      const coreCentroid = centroidOf(carbonIdx.length ? carbonIdx : atoms.map((_, i) => i), positions);
+      const polarCentroid = heteroIdx.length ? centroidOf(heteroIdx, positions) : null;
+      // alkyl tail = heavy atom farthest from the polar/core center
+      const ref = polarCentroid || coreCentroid;
+      let tailIdx = 0, tailD = -1;
+      for (let i = 0; i < n; i++) {
+        if (elements[i] === 1) continue;
+        const d = positions[i].distanceTo(ref);
+        if (d > tailD) { tailD = d; tailIdx = i; }
+      }
+      const txt = TOUR_TEXT[displayName] || {};
+      const subDist = Math.max(radius * 1.05, 5);
+      const tourStops = [
+        {
+          title: 'Overview',
+          text: txt.overview || `Full 3D conformer of ${displayName} — ${n} atoms in PubChem’s lowest-energy geometry. Drag to explore.`,
+          target: new THREE.Vector3(0, 0, 0),
+          dist: Math.max(radius * 2.6 + 3, 8),
+        },
+        {
+          title: 'Ring / carbon core',
+          text: txt.core || `The carbon skeleton — ${displayName}’s rigid backbone that sets its overall shape and how it packs against a receptor.`,
+          target: coreCentroid.clone(),
+          dist: subDist,
+        },
+      ];
+      if (polarCentroid) {
+        tourStops.push({
+          title: 'Polar functional group',
+          text: txt.polar || `Oxygen / nitrogen functional group — the polar “business end” that hydrogen-bonds inside the binding pocket.`,
+          target: polarCentroid.clone(),
+          dist: subDist,
+        });
+      }
+      tourStops.push({
+        title: 'Hydrophobic tail',
+        text: txt.tail || `The hydrophobic alkyl region — greasy carbons that make ${displayName} fat-soluble, helping it cross cell membranes.`,
+        target: positions[tailIdx].clone(),
+        dist: subDist,
+      });
+
+      return { group, radius, atomCount: n, formula, atoms, doubleBonds, tourStops };
+    }
+
+    const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+
+    function MoleculeViewer({ strain, activeCompound }) {
+      const dominantTerpene = Object.entries(strain.composition.terpenes)
+        .sort((a, b) => b[1] - a[1])[0][0];
+      const allCompounds = { ...strain.composition.cannabinoids, ...strain.composition.terpenes };
+      const isCannabinoid = activeCompound && strain.composition.cannabinoids[activeCompound] !== undefined;
+
+      const mountRef = useRef(null);
+      const threeRef = useRef(null);
+      const cacheRef = useRef({});
+      const modeRef = useRef({ measureMode: false });
+
+      const [status, setStatus] = useState('idle'); // idle | loading | ready | error
+      const [errorMsg, setErrorMsg] = useState('');
+      const [molInfo, setMolInfo] = useState(null);
+      const [focusMode, setFocusMode] = useState(false);
+      const [measureMode, setMeasureMode] = useState(false);
+      const [hover, setHover] = useState(null);       // { name, symbol, weight, note, x, y }
+      const [measureResult, setMeasureResult] = useState(null); // { a, b, d } | 'need2'
+      const [tourStops, setTourStops] = useState([]);  // [{title,text}]
+      const [tourIndex, setTourIndex] = useState(-1);
+
+      // ---------- measurement reset helper ----------
+      const clearMeasure = () => {
+        const st = threeRef.current;
+        if (st) {
+          (st.measurePicks || []).forEach((m) => {
+            m.scale.setScalar(1);
+            m.material.emissiveIntensity = 0.06;
+          });
+          st.measurePicks = [];
+          if (st.measureLine) { st.molGroup.remove(st.measureLine); st.measureLine = null; }
+        }
+        setMeasureResult(null);
+      };
+
+      // ---------- camera tween ----------
+      const tweenCameraTo = (target, dist) => {
+        const st = threeRef.current;
+        if (!st) return;
+        const off = new THREE.Vector3(0.6, 0.35, 1).normalize().multiplyScalar(dist);
+        st.tween = {
+          fromP: st.camera.position.clone(),
+          toP: target.clone().add(off),
+          fromT: st.controls.target.clone(),
+          toT: target.clone(),
+          t: 0, dur: 1.4,
+        };
+        st.controls.enabled = false;
+      };
+
+      // --- Scene setup (once) ---
+      useEffect(() => {
+        const mount = mountRef.current;
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, mount.clientWidth / mount.clientHeight, 0.1, 1000);
+        camera.position.set(0, 2, 16);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(mount.clientWidth, mount.clientHeight);
+        mount.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.08;
+        controls.minDistance = 2;
+        controls.maxDistance = 80;
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.38));
+        scene.add(new THREE.HemisphereLight(0xe8fff4, 0x0a0f0d, 0.4));
+        const keyLight = new THREE.PointLight(0xffffff, 1.0); keyLight.position.set(14, 18, 20); scene.add(keyLight);
+        const rimLight = new THREE.PointLight(0x34d399, 0.45); rimLight.position.set(-16, -10, -14); scene.add(rimLight);
+        const fillLight = new THREE.PointLight(0x22d3ee, 0.2); fillLight.position.set(0, -16, 10); scene.add(fillLight);
+
+        const molGroup = new THREE.Group();
+        scene.add(molGroup);
+
+        const raycaster = new THREE.Raycaster();
+        const pointer = new THREE.Vector2();
+
+        const state = {
+          scene, camera, renderer, controls, molGroup, raf: 0,
+          interacting: false, hovering: false, tourActive: false,
+          atomMeshes: [], doubleBonds: [], tourStops: [], radius: 6,
+          measurePicks: [], measureLine: null, hoveredMesh: null,
+          tween: null, lastT: performance.now(),
+        };
+        threeRef.current = state;
+
+        controls.addEventListener('start', () => { state.interacting = true; });
+        controls.addEventListener('end', () => { state.interacting = false; });
+
+        // ----- raycast helpers -----
+        const updatePointer = (e) => {
+          const rect = renderer.domElement.getBoundingClientRect();
+          pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+          pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        };
+        const pick = () => {
+          raycaster.setFromCamera(pointer, camera);
+          const hits = raycaster.intersectObjects(state.atomMeshes, false);
+          return hits.length ? hits[0].object : null;
+        };
+
+        const onMove = (e) => {
+          updatePointer(e);
+          const obj = pick();
+          // restore previously hovered atom (unless it's a measure pick)
+          if (state.hoveredMesh && state.hoveredMesh !== obj) {
+            if (!state.measurePicks.includes(state.hoveredMesh)) {
+              state.hoveredMesh.scale.setScalar(1);
+              state.hoveredMesh.material.emissiveIntensity = 0.06;
+            }
+            state.hoveredMesh = null;
+          }
+          if (obj) {
+            state.hovering = true;
+            if (!state.measurePicks.includes(obj)) {
+              obj.scale.setScalar(1.4);
+              obj.material.emissiveIntensity = 0.45;
+            }
+            state.hoveredMesh = obj;
+            const a = obj.userData.atom;
+            setHover({ name: a.name, symbol: a.symbol, weight: a.weight, note: a.note, x: e.clientX, y: e.clientY });
+            renderer.domElement.style.cursor = 'pointer';
+          } else {
+            state.hovering = false;
+            setHover(null);
+            renderer.domElement.style.cursor = modeRef.current.measureMode ? 'crosshair' : 'grab';
+          }
+        };
+
+        const onLeave = () => {
+          if (state.hoveredMesh && !state.measurePicks.includes(state.hoveredMesh)) {
+            state.hoveredMesh.scale.setScalar(1);
+            state.hoveredMesh.material.emissiveIntensity = 0.06;
+          }
+          state.hoveredMesh = null;
+          state.hovering = false;
+          setHover(null);
+        };
+
+        const onClick = (e) => {
+          if (!modeRef.current.measureMode) return;
+          updatePointer(e);
+          const obj = pick();
+          if (!obj) return;
+
+          // third click → start a fresh measurement
+          if (state.measurePicks.length >= 2) {
+            state.measurePicks.forEach((m) => { m.scale.setScalar(1); m.material.emissiveIntensity = 0.06; });
+            state.measurePicks = [];
+            if (state.measureLine) { state.molGroup.remove(state.measureLine); state.measureLine = null; }
+            setMeasureResult(null);
+          }
+          if (state.measurePicks.includes(obj)) return;
+
+          obj.scale.setScalar(1.35);
+          obj.material.emissiveIntensity = 0.7;
+          state.measurePicks.push(obj);
+
+          if (state.measurePicks.length === 1) {
+            setMeasureResult('need2');
+          } else if (state.measurePicks.length === 2) {
+            const [m0, m1] = state.measurePicks;
+            const d = m0.userData.atom.position.distanceTo(m1.userData.atom.position);
+            const geo = new THREE.BufferGeometry().setFromPoints([m0.position.clone(), m1.position.clone()]);
+            const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0x34d399 }));
+            state.molGroup.add(line);
+            state.measureLine = line;
+            setMeasureResult({ a: m0.userData.atom.symbol, b: m1.userData.atom.symbol, d });
+          }
+        };
+
+        renderer.domElement.addEventListener('pointermove', onMove);
+        renderer.domElement.addEventListener('pointerleave', onLeave);
+        renderer.domElement.addEventListener('click', onClick);
+
+        const animate = () => {
+          state.raf = requestAnimationFrame(animate);
+          const now = performance.now();
+          const dt = Math.min((now - state.lastT) / 1000, 0.05);
+          state.lastT = now;
+
+          // camera tween (guided tour / focus transitions)
+          if (state.tween) {
+            state.tween.t += dt / state.tween.dur;
+            const k = easeInOut(Math.min(state.tween.t, 1));
+            camera.position.lerpVectors(state.tween.fromP, state.tween.toP, k);
+            controls.target.lerpVectors(state.tween.fromT, state.tween.toT, k);
+            if (state.tween.t >= 1) { state.tween = null; if (!state.tourActive) controls.enabled = true; }
+          }
+
+          controls.update();
+
+          // pulse double bonds
+          if (state.doubleBonds.length) {
+            const e = 0.25 + 0.5 * (0.5 + 0.5 * Math.sin(now / 1000 * 3));
+            for (const c of state.doubleBonds) c.material.emissiveIntensity = e;
+          }
+
+          // idle auto-rotation
+          if (!state.interacting && !state.hovering && !state.tourActive && !state.tween) {
+            molGroup.rotation.y += 0.003;
+          }
+
+          renderer.render(scene, camera);
+        };
+        animate();
+
+        const ro = new ResizeObserver(() => {
+          const w = mount.clientWidth, h = mount.clientHeight;
+          if (!w || !h) return;
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+          renderer.setSize(w, h);
+        });
+        ro.observe(mount);
+
+        return () => {
+          cancelAnimationFrame(state.raf);
+          ro.disconnect();
+          renderer.domElement.removeEventListener('pointermove', onMove);
+          renderer.domElement.removeEventListener('pointerleave', onLeave);
+          renderer.domElement.removeEventListener('click', onClick);
+          controls.dispose();
+          disposeGroup(molGroup);
+          renderer.dispose();
+          if (renderer.domElement.parentNode === mount) mount.removeChild(renderer.domElement);
+        };
+      }, []);
+
+      // keep the measure-mode flag readable inside stable event handlers
+      useEffect(() => {
+        modeRef.current.measureMode = measureMode;
+        if (!measureMode) clearMeasure();
+      }, [measureMode]);
+
+      // --- Fetch + build on activeCompound change ---
+      useEffect(() => {
+        const state = threeRef.current;
+        if (!state) return;
+
+        // reset interaction state whenever the compound changes
+        setTourIndex(-1);
+        setMeasureMode(false);
+        setHover(null);
+        state.measurePicks = [];
+        if (state.measureLine) { state.molGroup.remove(state.measureLine); state.measureLine = null; }
+        state.tween = null;
+        state.controls.enabled = true;
+
+        if (!activeCompound) {
+          disposeGroup(state.molGroup);
+          state.atomMeshes = []; state.doubleBonds = []; state.tourStops = [];
+          setMolInfo(null); setTourStops([]); setStatus('idle');
+          return;
+        }
+
+        let cancelled = false;
+        const name = PUBCHEM_NAMES[activeCompound] || activeCompound;
+
+        const render3d = (record) => {
+          if (cancelled) return;
+          try {
+            const { group, radius, atomCount, formula, atoms, doubleBonds, tourStops } =
+              buildMolecule(record, activeCompound);
+            disposeGroup(state.molGroup);
+            state.molGroup.add(group);
+            state.molGroup.rotation.set(0, 0, 0);
+            state.atomMeshes = atoms.map((a) => a.mesh);
+            state.doubleBonds = doubleBonds;
+            state.tourStops = tourStops;
+            state.radius = radius;
+            const dist = Math.max(radius * 2.6 + 3, 8);
+            state.camera.position.set(0, radius * 0.4, dist);
+            state.controls.target.set(0, 0, 0);
+            state.controls.update();
+            setMolInfo({ formula, atomCount });
+            setTourStops(tourStops.map((s) => ({ title: s.title, text: s.text })));
+            setStatus('ready');
+          } catch (e) {
+            setErrorMsg('Could not parse structure data.');
+            setStatus('error');
+          }
+        };
+
+        if (cacheRef.current[name]) {
+          render3d(cacheRef.current[name]);
+          return () => { cancelled = true; };
+        }
+
+        setStatus('loading');
+        fetch(
+          'https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/' +
+          encodeURIComponent(name) + '/record/JSON/?record_type=3d'
+        )
+          .then((r) => { if (!r.ok) throw new Error('PubChem responded ' + r.status); return r.json(); })
+          .then((json) => {
+            if (!json.PC_Compounds || !json.PC_Compounds.length) throw new Error('No 3D conformer available');
+            cacheRef.current[name] = json;
+            render3d(json);
+          })
+          .catch((e) => {
+            if (cancelled) return;
+            disposeGroup(state.molGroup);
+            setErrorMsg(e.message);
+            setStatus('error');
+          });
+
+        return () => { cancelled = true; };
+      }, [activeCompound]);
+
+      // --- Guided tour driver ---
+      useEffect(() => {
+        const st = threeRef.current;
+        if (!st) return;
+        st.tourActive = tourIndex >= 0;
+
+        if (tourIndex < 0) {
+          st.controls.enabled = true;
+          return;
+        }
+        const stop = st.tourStops[tourIndex];
+        if (stop) tweenCameraTo(stop.target, stop.dist);
+
+        const timer = setTimeout(() => {
+          setTourIndex((i) => (i + 1 < st.tourStops.length ? i + 1 : -1));
+        }, 6000);
+        return () => clearTimeout(timer);
+      }, [tourIndex]);
+
+      // keep canvas sized after focus-mode layout change
+      useEffect(() => {
+        const st = threeRef.current;
+        if (!st) return;
+        const id = setTimeout(() => {
+          const mount = mountRef.current;
+          if (!mount) return;
+          st.camera.aspect = mount.clientWidth / mount.clientHeight;
+          st.camera.updateProjectionMatrix();
+          st.renderer.setSize(mount.clientWidth, mount.clientHeight);
+        }, 60);
+        return () => clearTimeout(id);
+      }, [focusMode]);
+
+      const ready = status === 'ready' && activeCompound;
+
+      const ToolButton = ({ active, onClick, children, title }) => (
+        <button
+          onClick={onClick}
+          title={title}
+          className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition-all duration-150 ring-1 ring-inset
+            ${active
+              ? 'bg-accent/20 text-accent ring-accent/40'
+              : 'bg-white/5 text-gray-300 ring-white/10 hover:bg-white/10 hover:text-white'}`}
+        >
+          {children}
+        </button>
+      );
+
+      return (
+        <>
+          {/* Backdrop when focused */}
+          <div className={focusMode ? 'fixed inset-0 z-40 bg-black/70 backdrop-blur-md' : 'hidden'} onClick={() => setFocusMode(false)} />
+
+          <div className={focusMode ? 'fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 pointer-events-none' : 'contents'}>
+            <section
+              className={`flex flex-col rounded-2xl bg-surface-800/50 backdrop-blur-xl ring-1 ring-white/[0.06] shadow-2xl shadow-black/40 overflow-hidden transition-all duration-300
+                ${focusMode ? 'pointer-events-auto w-full max-w-7xl h-[88vh]' : 'flex-1 min-h-0 hover:ring-white/[0.12]'}`}
+            >
+              {/* Header + toolbar */}
+              <header className="flex items-center gap-3 px-5 py-4 border-b border-white/5">
+                <div className="h-8 w-8 rounded-lg bg-accent/10 ring-1 ring-accent/20 flex items-center justify-center text-accent shrink-0">
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="6" cy="6" r="2.5" /><circle cx="18" cy="8" r="2.5" /><circle cx="12" cy="18" r="2.5" />
+                    <path d="M8.2 7.1l7.4 0.7M7.3 8.2l3.5 7.6M16.8 10.2l-3.6 5.7" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-white leading-tight">3D Molecule Viewer</h3>
+                  <p className="text-[11px] text-gray-500 truncate">PubChem 3D conformer · ball &amp; stick</p>
+                </div>
+                <div className="ml-auto flex items-center gap-1.5">
+                  {ready && (
+                    <>
+                      <ToolButton
+                        active={tourIndex >= 0}
+                        onClick={() => setTourIndex((i) => (i >= 0 ? -1 : 0))}
+                        title="Autopilot camera tour"
+                      >
+                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 3l14 9-14 9V3z"/></svg>
+                        Tour
+                      </ToolButton>
+                      <ToolButton
+                        active={measureMode}
+                        onClick={() => setMeasureMode((m) => !m)}
+                        title="Measure distance between two atoms"
+                      >
+                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 17l14-14 4 4L7 21z"/><path d="M7 11l2 2M11 7l2 2M15 3l2 2"/></svg>
+                        Measure
+                      </ToolButton>
+                    </>
+                  )}
+                  <ToolButton active={focusMode} onClick={() => setFocusMode((f) => !f)} title="Focus mode">
+                    {focusMode ? (
+                      <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 9H4V4M9 9l-5-5M15 9h5V4M15 9l5-5M9 15H4v5M9 15l-5 5M15 15h5v5M15 15l5 5"/></svg>
+                    ) : (
+                      <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+                    )}
+                    {focusMode ? 'Exit' : 'Focus'}
+                  </ToolButton>
+                </div>
+              </header>
+
+              {/* Canvas body */}
+              <div className="relative flex-1 min-h-[340px] bg-surface-850/70">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(52,211,153,0.12),transparent_62%)]"></div>
+                <div ref={mountRef} className="absolute inset-0" />
+                <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_70px_rgba(0,0,0,0.55)]"></div>
+
+                {/* Idle */}
+                {status === 'idle' && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 pointer-events-none">
+                    <svg className="h-9 w-9 text-accent/50 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <circle cx="12" cy="12" r="3" />
+                      <ellipse cx="12" cy="12" rx="10" ry="4" />
+                      <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)" />
+                      <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(-60 12 12)" />
+                    </svg>
+                    <p className="text-sm font-semibold text-gray-400">No compound selected</p>
+                    <p className="mt-1 text-xs text-gray-600">
+                      Click a compound on the chart — dominant terpene here is{' '}
+                      <span className="font-semibold text-accent">{dominantTerpene}</span>
+                    </p>
+                  </div>
+                )}
+
+                {/* Loading */}
+                {status === 'loading' && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-900/60 backdrop-blur-sm">
+                    <div className="h-8 w-8 rounded-full border-2 border-surface-600 border-t-accent animate-spin"></div>
+                    <p className="mt-3 text-xs font-medium text-gray-400">Fetching {activeCompound} from PubChem…</p>
+                  </div>
+                )}
+
+                {/* Error */}
+                {status === 'error' && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                    <p className="text-sm font-semibold text-red-400">Couldn't load {activeCompound}</p>
+                    <p className="mt-1 text-xs text-gray-500">{errorMsg}</p>
+                    <p className="mt-2 text-[11px] text-gray-600">Check your connection and try another compound.</p>
+                  </div>
+                )}
+
+                {/* Measure hint / result */}
+                {ready && measureMode && (
+                  <div className="absolute top-3 left-3 rounded-lg bg-surface-900/85 backdrop-blur ring-1 ring-accent/30 px-3 py-2 text-xs">
+                    {measureResult && measureResult !== 'need2' ? (
+                      <span className="font-mono text-accent">
+                        {measureResult.a}–{measureResult.b}: {measureResult.d.toFixed(2)} Å
+                      </span>
+                    ) : (
+                      <span className="text-gray-300">
+                        {measureResult === 'need2' ? 'Pick a second atom…' : 'Click two atoms to measure'}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Guided tour narration */}
+                {ready && tourIndex >= 0 && tourStops[tourIndex] && (
+                  <div className="absolute inset-x-3 bottom-16 sm:left-4 sm:right-auto sm:max-w-sm rounded-xl bg-surface-900/85 backdrop-blur-md ring-1 ring-accent/25 p-4 shadow-xl animate-fadeUp">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-accent">
+                        Tour · {tourIndex + 1}/{tourStops.length}
+                      </span>
+                      <button onClick={() => setTourIndex(-1)} className="ml-auto text-gray-500 hover:text-white text-xs">✕ Exit</button>
+                    </div>
+                    <p className="text-sm font-bold text-white">{tourStops[tourIndex].title}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-gray-300">{tourStops[tourIndex].text}</p>
+                    <div className="mt-3 flex items-center gap-1.5">
+                      {tourStops.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setTourIndex(i)}
+                          className={`h-1.5 rounded-full transition-all ${i === tourIndex ? 'w-5 bg-accent' : 'w-1.5 bg-gray-600 hover:bg-gray-400'}`}
+                        />
+                      ))}
+                      <button
+                        onClick={() => setTourIndex((i) => (i + 1 < tourStops.length ? i + 1 : -1))}
+                        className="ml-auto text-[11px] font-semibold text-accent hover:text-white"
+                      >
+                        Next →
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Info bar */}
+                {ready && (
+                  <div className="absolute inset-x-0 bottom-0 flex items-center gap-2.5 px-4 py-2.5 bg-surface-900/80 backdrop-blur border-t border-white/5">
+                    <span className="text-sm font-bold text-white">{activeCompound}</span>
+                    <span
+                      className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                      style={{
+                        color: isCannabinoid ? '#4ade80' : '#22d3ee',
+                        backgroundColor: isCannabinoid ? 'rgba(74,222,128,0.1)' : 'rgba(34,211,238,0.1)',
+                      }}
+                    >
+                      {isCannabinoid ? 'Cannabinoid' : 'Terpene'}
+                    </span>
+                    {molInfo && (
+                      <span className="text-[11px] font-mono text-gray-400">{molInfo.formula} · {molInfo.atomCount} atoms</span>
+                    )}
+                    <span className="ml-auto text-[11px] font-mono text-gray-500">
+                      {allCompounds[activeCompound]}% in {strain.name}
+                    </span>
+                    <span className="hidden md:inline text-[10px] text-gray-600">drag · scroll · hover atoms</span>
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
+
+          {/* Floating atom tooltip (follows cursor) */}
+          {hover && (
+            <div
+              className="fixed z-[60] pointer-events-none rounded-lg bg-surface-900/95 ring-1 ring-white/10 shadow-2xl px-3 py-2 max-w-[220px]"
+              style={{ left: hover.x + 14, top: hover.y + 14 }}
+            >
+              <div className="flex items-baseline gap-2">
+                <span className="text-sm font-bold text-white">{hover.name}</span>
+                <span className="text-[11px] font-mono text-accent">{hover.symbol}</span>
+              </div>
+              <p className="text-[11px] text-gray-400">Atomic weight {hover.weight} u</p>
+              {hover.note && (
+                <p className="mt-1.5 text-[11px] leading-snug text-emerald-300 border-t border-white/5 pt-1.5">
+                  {hover.note}
+                </p>
+              )}
+            </div>
+          )}
+        </>
+      );
+    }
+
+    /* ============================================================
+       APP
+       ============================================================ */
+    function App() {
+      const [activeStrainId, setActiveStrainId] = useState(STRAIN_DB[0].id);
+      const [activeCompound, setActiveCompound] = useState('THC');
+      const activeStrain = STRAIN_DB.find((s) => s.id === activeStrainId);
+
+      return (
+        <div className="relative flex h-screen overflow-hidden bg-surface-900">
+          {/* Ambient background glow */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="absolute -top-40 left-1/3 h-[28rem] w-[28rem] rounded-full bg-accent/[0.05] blur-3xl"></div>
+            <div className="absolute -bottom-32 right-0 h-96 w-96 rounded-full bg-cyan-500/[0.05] blur-3xl"></div>
+          </div>
+
+          <Sidebar strains={STRAIN_DB} activeId={activeStrainId} onSelect={setActiveStrainId} />
+
+          <main className="relative flex-1 overflow-y-auto">
+            <div className="mx-auto flex min-h-full w-full max-w-[1600px] flex-col gap-6 p-4 lg:p-6">
+              <StrainHeader strain={activeStrain} />
+              <div className="grid flex-1 min-h-0 grid-cols-1 gap-6 xl:grid-cols-12">
+                <div className="flex min-h-[360px] flex-col xl:col-span-4 xl:min-h-0">
+                  <CompositionChart
+                    strain={activeStrain}
+                    activeCompound={activeCompound}
+                    onSelectCompound={setActiveCompound}
+                  />
+                </div>
+                <div className="flex min-h-[420px] flex-col xl:col-span-8 xl:min-h-0">
+                  <MoleculeViewer strain={activeStrain} activeCompound={activeCompound} />
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
