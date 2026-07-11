@@ -2617,6 +2617,18 @@
           terpenes: { Myrcene: 0.11, Limonene: 0.58, Pinene: 0.05, Terpinolene: 0.13, Linalool: 0.06, Caryophyllene: 0.3, Humulene: 0.13 },
         },
       },
+      {
+        id: "chem-valley-kush",
+        name: "Chem Valley Kush",
+        type: "Hybrid",
+        lineage: "Chemdawg \u00d7 SFV OG Kush",
+        description:
+          "A pungent, indica-leaning cross with a gassy diesel and earthy-pine aroma. Heavy, relaxing body effects with a calming, euphoric lift.",
+        composition: {
+          cannabinoids: { THC: 21, CBD: 0.1, CBG: 0.5 },
+          terpenes: { Myrcene: 0.3, Limonene: 0.14, Pinene: 0.09, Terpinolene: 0.04, Linalool: 0.07, Caryophyllene: 0.52, Humulene: 0.15 },
+        },
+      },
     ];
 
     /* ============================================================
@@ -3598,25 +3610,6 @@
               drag to rotate · pinch to zoom · tap an atom
             </p>
           )}
-
-          {/* WebXR dom-overlay UI — rendered fullscreen by the browser during AR */}
-          <div ref={arOverlayRef} className="fixed inset-0 z-50 pointer-events-none">
-            {arActive && (
-              <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-3 px-4 pb-10">
-                <p className="rounded-full bg-black/60 px-4 py-2 text-xs font-semibold text-white text-center">
-                  {arPlaced
-                    ? `${activeCompound} placed — move around to explore`
-                    : 'Point your camera at a flat surface, then tap to place'}
-                </p>
-                <button
-                  onClick={endAR}
-                  className="pointer-events-auto rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 px-5 py-2.5 text-sm font-bold text-white active:scale-95"
-                >
-                  ✕ Exit AR
-                </button>
-              </div>
-            )}
-          </div>
         </div>
       );
     }
@@ -3872,4 +3865,425 @@
                 value={vaporTemp}
                 onChange={(e) => onVaporTemp(Number(e.target.value))}
                 className="vapor-slider w-full"
-                aria-label="Vaporizer tempera
+                aria-label="Vaporizer temperature"
+              />
+              <div className="mt-2 flex items-center justify-between text-[10px] text-gray-600">
+                <span>{VAPOR_MIN}°C</span>
+                <span className={vaporActive ? 'text-orange-300 font-semibold' : ''}>
+                  {vaporActive
+                    ? `♨ ${vaporSet.size} vaporizing`
+                    : 'Drag to heat'}
+                </span>
+                <span>{VAPOR_MAX}°C</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Entourage Effect radar */}
+          <EntourageRadar strain={strain} />
+        </div>
+      );
+    }
+
+    /* ============================================================
+       BREEDER TAB
+       ============================================================ */
+    function StrainSelect({ label, value, onChange, strains, accent }) {
+      const ring = accent === 'pink' ? 'ring-pink-500/40' : 'ring-sky-500/40';
+      const dot = accent === 'pink' ? 'bg-pink-400' : 'bg-sky-400';
+      const text = accent === 'pink' ? 'text-pink-300' : 'text-sky-300';
+      return (
+        <div className="flex-1 min-w-0">
+          <label className="flex items-center gap-1.5 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-gray-500">
+            <span className={`h-1.5 w-1.5 rounded-full ${dot}`}></span>
+            <span className={text}>{label}</span>
+          </label>
+          <div className="relative">
+            <select
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              className={`w-full appearance-none rounded-xl bg-surface-800/80 ring-1 ring-inset ${ring} focus:outline-none text-sm font-semibold text-gray-100 pl-3.5 pr-9 py-3 cursor-pointer`}
+            >
+              {strains.map((s) => (
+                <option key={s.id} value={s.id} className="bg-surface-900 text-gray-100">{s.name}</option>
+              ))}
+            </select>
+            <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
+            </svg>
+          </div>
+        </div>
+      );
+    }
+
+    function BreederBarTick({ x, y, payload }) {
+      return (
+        <text x={x} y={y} dy={4} textAnchor="end" fill="#9ca3af" fontSize={11} fontWeight={500}>
+          {payload.value}
+        </text>
+      );
+    }
+
+    function BreederTab({ strains }) {
+      const [motherId, setMotherId] = useState('blue-dream');
+      const [fatherId, setFatherId] = useState('og-kush');
+      const [customName, setCustomName] = useState('');
+
+      const mother = strains.find((s) => s.id === motherId);
+      const father = strains.find((s) => s.id === fatherId);
+      const placeholder = suggestHybridName(mother, father);
+      const hybridName = customName.trim() || placeholder;
+
+      const hybrid = createHybrid(mother, father, hybridName);
+      const barData = buildChartData(hybrid);
+      const radarData = buildEffectData(hybrid);
+      const dominant = radarData.reduce((a, b) => (b.value > a.value ? b : a), radarData[0]);
+
+      return (
+        <div className="h-full overflow-y-auto px-4 pt-4 pb-6 animate-fadeUp">
+          {/* Intro */}
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-pink-500/20 to-sky-500/20 ring-1 ring-white/10 flex items-center justify-center">
+              <svg className="h-4.5 w-4.5 text-accent" style={{ height: 18, width: 18 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v3M12 6c-2 0-3.5 1.5-3.5 3.5S10 13 12 13s3.5-1.5 3.5-3.5S14 6 12 6zM12 13v5M9 21h6M8 9.5H5M19 9.5h-3" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-lg font-extrabold tracking-tight bg-gradient-to-r from-pink-200 via-white to-sky-200 bg-clip-text text-transparent">
+                Breeder Mode
+              </h2>
+              <p className="text-[10px] text-gray-500">Cross two strains, predict the hybrid</p>
+            </div>
+          </div>
+
+          {/* Selectors */}
+          <div className="mt-4 rounded-2xl bg-surface-800/50 ring-1 ring-white/[0.06] p-4">
+            <div className="flex items-end gap-3">
+              <StrainSelect label="Mother" value={motherId} onChange={setMotherId} strains={strains} accent="pink" />
+              <span className="shrink-0 pb-3 text-xl font-light text-gray-600">×</span>
+              <StrainSelect label="Father" value={fatherId} onChange={setFatherId} strains={strains} accent="sky" />
+            </div>
+
+            {/* Name input */}
+            <div className="mt-4">
+              <label className="flex items-center gap-1.5 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-gray-500">
+                <svg className="h-3 w-3 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                Name your hybrid
+              </label>
+              <input
+                type="text"
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+                placeholder={placeholder}
+                maxLength={40}
+                className="w-full rounded-xl bg-surface-800/80 ring-1 ring-inset ring-accent/30 focus:ring-accent/60 focus:outline-none text-sm font-semibold text-gray-100 placeholder-gray-600 px-3.5 py-3"
+              />
+              <p className="mt-1.5 text-[10px] text-gray-600">
+                Blank uses <span className="text-gray-400 font-medium">"{placeholder}"</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Hybrid header */}
+          <div className="mt-5 flex items-center gap-2.5">
+            <h3 className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-white to-emerald-200/80 bg-clip-text text-transparent truncate">
+              {hybridName}
+            </h3>
+            <TypeBadge type="Hybrid" small />
+          </div>
+          <p className="mt-0.5 text-[11px] font-medium text-gray-500">
+            <span className="text-pink-300">{mother.name}</span>
+            <span className="mx-1.5 text-gray-600">×</span>
+            <span className="text-sky-300">{father.name}</span>
+          </p>
+          <p className="mt-2 text-xs leading-relaxed text-gray-400">{hybrid.description}</p>
+
+          {/* Stats */}
+          <div className="mt-4 flex gap-2.5">
+            <Stat label="THC" value={hybrid.composition.cannabinoids.THC + '%'} />
+            <Stat label="CBD" value={hybrid.composition.cannabinoids.CBD + '%'} />
+            <Stat label="CBG" value={hybrid.composition.cannabinoids.CBG + '%'} />
+          </div>
+
+          {/* Bar chart */}
+          <div className="mt-5 rounded-2xl bg-surface-800/50 ring-1 ring-white/[0.06] p-4">
+            <div className="flex items-center gap-4 mb-1">
+              <span className="flex items-center gap-1.5 text-[11px] font-medium text-gray-400">
+                <span className="h-2 w-2 rounded-sm" style={{ background: CHART_COLORS.Cannabinoid }}></span>
+                Cannabinoids
+              </span>
+              <span className="flex items-center gap-1.5 text-[11px] font-medium text-gray-400">
+                <span className="h-2 w-2 rounded-sm" style={{ background: CHART_COLORS.Terpene }}></span>
+                Terpenes
+              </span>
+              <span className="ml-auto text-[10px] text-gray-600">√ scale</span>
+            </div>
+            <p className="mb-2 text-[10px] text-gray-600">Predicted chemical profile</p>
+            <div key={hybridName + motherId + fatherId} style={{ height: barData.length * 34 + 30 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={barData} layout="vertical" margin={{ top: 4, right: 14, left: 4, bottom: 0 }}>
+                  <CartesianGrid horizontal={false} stroke="#1c2822" />
+                  <XAxis
+                    type="number" scale="sqrt" domain={[0, 'dataMax']}
+                    tick={{ fill: '#6b7280', fontSize: 10 }}
+                    tickFormatter={(v) => v + '%'}
+                    axisLine={{ stroke: '#28362f' }} tickLine={false}
+                  />
+                  <YAxis type="category" dataKey="name" width={96} axisLine={false} tickLine={false} tick={<BreederBarTick />} />
+                  <Tooltip content={() => null} cursor={{ fill: 'rgba(52, 211, 153, 0.06)' }} />
+                  <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={20} isAnimationActive={true} animationDuration={500}>
+                    {barData.map((entry) => (
+                      <Cell key={entry.name} fill={CHART_COLORS[entry.category]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Radar */}
+          <div className="mt-5 rounded-2xl bg-surface-800/50 ring-1 ring-white/[0.06] p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <svg className="h-4 w-4 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinejoin="round" d="M12 2l9 6.5-3.4 10.5H6.4L3 8.5 12 2z" />
+                <path strokeLinejoin="round" d="M12 7l4.5 3.3-1.7 5.2H9.2L7.5 10.3 12 7z" />
+              </svg>
+              <h3 className="text-sm font-bold text-white">Predicted Entourage Effect</h3>
+            </div>
+            <p className="mb-1 text-[10px] text-gray-600">Effect profile from the blended terpene mix</p>
+            <div key={hybridName + motherId + fatherId} style={{ height: 240 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={radarData} outerRadius="72%" margin={{ top: 8, right: 26, bottom: 8, left: 26 }}>
+                  <PolarGrid stroke="#28362f" />
+                  <PolarAngleAxis dataKey="effect" tick={{ fill: '#9ca3af', fontSize: 12, fontWeight: 600 }} />
+                  <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
+                  <Radar dataKey="value" stroke="#34d399" strokeWidth={2} fill="#34d399" fillOpacity={0.28} animationDuration={500} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+            <p className="text-center text-[11px] text-gray-500">
+              Leans toward <span className="font-semibold text-accent">{dominant.effect}</span>
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    /* ============================================================
+       STRAINS TAB
+       ============================================================ */
+    function StrainsTab({ strains, activeId, onSelect }) {
+      const [query, setQuery] = useState('');
+      const q = query.trim().toLowerCase();
+      const filtered = q
+        ? strains.filter((s) =>
+            s.name.toLowerCase().includes(q) ||
+            s.lineage.toLowerCase().includes(q) ||
+            s.type.toLowerCase().includes(q))
+        : strains;
+      return (
+        <div className="h-full overflow-y-auto px-4 pb-6 space-y-2.5">
+          {/* Sticky search */}
+          <div className="sticky top-0 z-10 -mx-4 px-4 pt-4 pb-2 bg-surface-900/85 backdrop-blur-md">
+            <div className="relative">
+              <svg className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="7" /><path strokeLinecap="round" d="M21 21l-4.3-4.3" />
+              </svg>
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search strains…"
+                className="w-full rounded-xl bg-surface-800/70 ring-1 ring-surface-700 focus:ring-accent/50 focus:outline-none text-[15px] text-gray-200 placeholder-gray-500 pl-9 pr-9 py-2.5 transition"
+              />
+              {query && (
+                <button
+                  onClick={() => setQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full flex items-center justify-center text-gray-500 active:text-white active:bg-surface-700 transition"
+                  aria-label="Clear search"
+                >
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path strokeLinecap="round" d="M6 6l12 12M18 6L6 18" /></svg>
+                </button>
+              )}
+            </div>
+          </div>
+          <p className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-500">
+            {q ? `${filtered.length} of ${strains.length} strains` : `Strain Library — ${strains.length}`}
+          </p>
+          {filtered.length === 0 && (
+            <div className="px-3 py-10 text-center">
+              <p className="text-sm text-gray-400">No strains found</p>
+              <p className="mt-1 text-[11px] text-gray-600">Try a different name, lineage, or type</p>
+            </div>
+          )}
+          {filtered.map((strain) => {
+            const active = strain.id === activeId;
+            return (
+              <button
+                key={strain.id}
+                onClick={() => onSelect(strain.id)}
+                className={`w-full text-left rounded-2xl px-4 py-3.5 transition-all duration-150 active:scale-[0.98]
+                  ${active
+                    ? 'bg-accent/10 ring-1 ring-accent/40'
+                    : 'bg-surface-800/50 ring-1 ring-white/[0.06]'}`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`text-[15px] font-semibold truncate ${active ? 'text-accent' : 'text-gray-200'}`}>
+                    {strain.name}
+                  </span>
+                  <TypeBadge type={strain.type} small />
+                </div>
+                <p className="mt-0.5 text-[11px] text-gray-500 truncate">{strain.lineage}</p>
+                <div className="mt-2 flex gap-3 text-[10px] font-mono text-gray-500">
+                  <span>THC <span className="text-gray-300">{strain.composition.cannabinoids.THC}%</span></span>
+                  <span>CBD <span className="text-gray-300">{strain.composition.cannabinoids.CBD}%</span></span>
+                  <span>CBG <span className="text-gray-300">{strain.composition.cannabinoids.CBG}%</span></span>
+                </div>
+              </button>
+            );
+          })}
+          <p className="pt-2 text-center text-[10px] text-gray-600">Mock data · v0.1 · educational use</p>
+        </div>
+      );
+    }
+
+    /* ============================================================
+       BOTTOM NAV
+       ============================================================ */
+    const TABS = [
+      {
+        id: 'strains', label: 'Strains',
+        icon: (
+          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18M12 21c0-4-2.5-6-6-6 3.5 0 6-2 6-6 0 4 2.5 6 6 6-3.5 0-6 2-6 6zM7 5.5C8.8 6.5 10 8 10 10 8 10 6.2 9 5.2 7.2M17 5.5C15.2 6.5 14 8 14 10c2 0 3.8-1 4.8-2.8" />
+          </svg>
+        ),
+      },
+      {
+        id: 'profile', label: 'Profile',
+        icon: (
+          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path strokeLinecap="round" d="M4 20V10M10 20V4M16 20v-8M22 20H2" />
+          </svg>
+        ),
+      },
+      {
+        id: 'molecule', label: 'Molecule',
+        icon: (
+          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <circle cx="6" cy="6" r="2.5" /><circle cx="18" cy="8" r="2.5" /><circle cx="12" cy="18" r="2.5" />
+            <path d="M8.2 7.1l7.4 0.7M7.3 8.2l3.5 7.6M16.8 10.2l-3.6 5.7" />
+          </svg>
+        ),
+      },
+      {
+        id: 'breeder', label: 'Breeder',
+        icon: (
+          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v3M12 6c-2 0-3.5 1.5-3.5 3.5S10 13 12 13s3.5-1.5 3.5-3.5S14 6 12 6zM12 13v5M9 21h6" />
+          </svg>
+        ),
+      },
+    ];
+
+    function BottomNav({ tab, onChange }) {
+      return (
+        <nav className="shrink-0 safe-bottom bg-surface-850/90 backdrop-blur-xl border-t border-white/5">
+          <div className="flex">
+            {TABS.map((t) => {
+              const active = t.id === tab;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => onChange(t.id)}
+                  className={`flex flex-1 flex-col items-center gap-0.5 py-2.5 transition-colors ${active ? 'text-accent' : 'text-gray-500'}`}
+                >
+                  {t.icon}
+                  <span className="text-[10px] font-semibold">{t.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+      );
+    }
+
+    /* ============================================================
+       APP
+       ============================================================ */
+    function App() {
+      const [tab, setTab] = useState('profile');
+      const [activeStrainId, setActiveStrainId] = useState(STRAIN_DB[0].id);
+      const [activeCompound, setActiveCompound] = useState('THC');
+      const [vaporTemp, setVaporTemp] = useState(VAPOR_MIN);
+      const activeStrain = STRAIN_DB.find((s) => s.id === activeStrainId);
+
+      const selectStrain = (id) => {
+        setActiveStrainId(id);
+        setTab('profile');
+      };
+
+      const selectCompound = (name) => {
+        setActiveCompound(name);
+        setTab('molecule');
+      };
+
+      return (
+        <div className="relative flex flex-col bg-surface-900" style={{ height: '100dvh' }}>
+          {/* Ambient background glow */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="absolute -top-32 left-1/4 h-72 w-72 rounded-full bg-accent/[0.05] blur-3xl"></div>
+            <div className="absolute -bottom-24 right-0 h-64 w-64 rounded-full bg-cyan-500/[0.05] blur-3xl"></div>
+          </div>
+
+          {/* Header */}
+          <header className="relative z-10 shrink-0 safe-top bg-surface-850/80 backdrop-blur-xl border-b border-white/5">
+            <div className="flex items-center gap-2.5 px-4 py-3">
+              <div className="h-8 w-8 rounded-lg bg-accent/10 ring-1 ring-accent/30 flex items-center justify-center">
+                <svg className="h-4.5 w-4.5 text-accent" style={{ height: 18, width: 18 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18M12 21c0-4-2.5-6-6-6 3.5 0 6-2 6-6 0 4 2.5 6 6 6-3.5 0-6 2-6 6zM7 5.5C8.8 6.5 10 8 10 10 8 10 6.2 9 5.2 7.2M17 5.5C15.2 6.5 14 8 14 10c2 0 3.8-1 4.8-2.8" />
+                </svg>
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-sm font-bold tracking-tight text-white leading-tight">Strain Explorer</h1>
+                <p className="text-[10px] text-gray-500 truncate">{activeStrain.name} · {activeStrain.type}</p>
+              </div>
+            </div>
+          </header>
+
+          {/* Tab panels — all stay mounted so 3D scene & caches persist */}
+          <main className="relative z-10 flex-1 min-h-0">
+            <div className={tab === 'strains' ? 'h-full' : 'hidden'}>
+              <StrainsTab strains={STRAIN_DB} activeId={activeStrainId} onSelect={selectStrain} />
+            </div>
+            <div className={tab === 'profile' ? 'h-full' : 'hidden'}>
+              <ProfileTab
+                strain={activeStrain}
+                activeCompound={activeCompound}
+                onSelectCompound={selectCompound}
+                vaporTemp={vaporTemp}
+                onVaporTemp={setVaporTemp}
+              />
+            </div>
+            <div className={tab === 'molecule' ? 'h-full' : 'hidden'}>
+              <MoleculeViewer
+                strain={activeStrain}
+                activeCompound={activeCompound}
+                visible={tab === 'molecule'}
+                vaporTemp={vaporTemp}
+              />
+            </div>
+            <div className={tab === 'breeder' ? 'h-full' : 'hidden'}>
+              <BreederTab strains={STRAIN_DB} />
+            </div>
+          </main>
+
+          <BottomNav tab={tab} onChange={setTab} />
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
